@@ -32,11 +32,13 @@ try {
   const success = await server.ssrLoadModule('/simulation/SuccessScore.ts');
   const feedback = await server.ssrLoadModule('/simulation/FeedbackSystem.ts');
   const model = await server.ssrLoadModule('/simulation/model.ts');
+  const presets = await server.ssrLoadModule('/simulation/presets.ts');
 
   test('success score inverts environmental pressure and applies default weights', () => {
     const outcomes = {
       economicGrowth: 2.5,
       wellbeing: 70,
+      fairness: 65,
       socialCohesion: 60,
       governmentBalance: 0,
       environmentalPressure: 30,
@@ -65,6 +67,7 @@ try {
       outcomes: {
         economicGrowth: -0.5,
         wellbeing: 25,
+        fairness: 40,
         socialCohesion: 48,
         governmentBalance: -200,
         environmentalPressure: 72,
@@ -94,7 +97,7 @@ try {
         stimulusRate: 2,
       },
       5,
-      ['inflation-shock'],
+      ['inflation'],
     );
 
     assert(simulation.history.length === 5, 'five year horizon should store five annual outcomes');
@@ -110,6 +113,185 @@ try {
     assert(
       simulation.history[1].yearSummary?.narrative?.startsWith('Year 2:'),
       'annual outcomes should expose a year summary narrative',
+    );
+  });
+
+  test('fairness worsens when housing stress hits vulnerable households', () => {
+    const lowStress = model.runSimulation(
+      {
+        immigrationRate: 2,
+        housingBuildRate: 350000,
+        integrationEffectiveness: 70,
+        skillsAlignment: 70,
+        infrastructureReadiness: 75,
+        taxRate: 25,
+        stimulusRate: 2,
+      },
+      1,
+      [],
+    );
+    const highStress = model.runSimulation(
+      {
+        immigrationRate: 4.5,
+        housingBuildRate: 50000,
+        integrationEffectiveness: 45,
+        skillsAlignment: 55,
+        infrastructureReadiness: 35,
+        taxRate: 25,
+        stimulusRate: 2,
+      },
+      1,
+      [],
+    );
+
+    assert(
+      lowStress.outcomes.fairness > highStress.outcomes.fairness,
+      'fairness should be lower when renters and young workers face severe housing stress',
+    );
+    assert(
+      typeof highStress.outcomes.fairnessExplanation === 'string' &&
+        highStress.outcomes.fairnessExplanation.includes('representative households'),
+      'fairness explanation should describe representative household distribution',
+    );
+  });
+
+  test('success score includes fairness with valid default weights', () => {
+    const outcomes = {
+      economicGrowth: 2.5,
+      wellbeing: 70,
+      fairness: 64,
+      socialCohesion: 60,
+      governmentBalance: 0,
+      environmentalPressure: 30,
+    };
+    const result = success.calculateSuccessScore(outcomes, success.DEFAULT_SUCCESS_WEIGHTS);
+
+    assertClose(result.componentScores.fairness, 64, 0.001, 'fairness component');
+    assertClose(result.totalWeight, 100, 0.001, 'weight total with fairness');
+    assert(result.isValidWeightTotal, 'default weights including fairness should be valid');
+  });
+
+  test('baseline comparison reports deltas from default policies', () => {
+    const comparison = model.compareToBaseline(
+      {
+        immigrationRate: 4,
+        housingBuildRate: 90000,
+        integrationEffectiveness: 45,
+        skillsAlignment: 55,
+        infrastructureReadiness: 35,
+        taxRate: 25,
+        stimulusRate: 6,
+      },
+      5,
+      [],
+    );
+
+    assert(comparison.baseline.history.length === 5, 'baseline should use selected horizon');
+    assert(
+      comparison.deltas.housingStress > 0,
+      'stressful scenario should have higher housing stress than baseline',
+    );
+    assert(
+      typeof comparison.summary === 'string' && comparison.summary.includes('baseline'),
+      'comparison should include plain-English baseline summary',
+    );
+  });
+
+  test('scenario presets expose named policy settings', () => {
+    const housingFirst = presets.SCENARIO_PRESETS.find((preset) => preset.id === 'housing-first');
+    const fiscalRepair = presets.SCENARIO_PRESETS.find((preset) => preset.id === 'fiscal-repair');
+
+    assert(housingFirst, 'housing-first preset should exist');
+    assert(fiscalRepair, 'fiscal-repair preset should exist');
+    assert(
+      housingFirst.policies.housingBuildRate > presets.DEFAULT_POLICY_SETTINGS.housingBuildRate,
+      'housing-first preset should increase housing construction',
+    );
+    assert(
+      fiscalRepair.policies.stimulusRate < presets.DEFAULT_POLICY_SETTINGS.stimulusRate,
+      'fiscal-repair preset should reduce stimulus spending',
+    );
+  });
+
+  test('model exposes government finance breakdown drivers', () => {
+    const simulation = model.runSimulation(
+      {
+        immigrationRate: 2,
+        housingBuildRate: 175000,
+        integrationEffectiveness: 45,
+        skillsAlignment: 70,
+        infrastructureReadiness: 40,
+        taxRate: 30,
+        stimulusRate: 7,
+      },
+      3,
+      ['climate'],
+    );
+    const breakdown = simulation.outcomes.financeBreakdown;
+
+    assert(breakdown.taxRevenueBoost > 0, 'finance breakdown should include tax revenue');
+    assert(breakdown.stimulusSpendingBoost > 0, 'finance breakdown should include stimulus spending');
+    assert(
+      breakdown.infrastructureSpendingPressure > 0,
+      'finance breakdown should include infrastructure pressure',
+    );
+    assert(breakdown.eventSpending > 0, 'finance breakdown should include event spending');
+  });
+
+  test('policy trade-offs keep expected directional behavior', () => {
+    const baseline = model.runSimulation(presets.DEFAULT_POLICY_SETTINGS, 1, []);
+    const lowHousing = model.runSimulation(
+      {
+        ...presets.DEFAULT_POLICY_SETTINGS,
+        housingBuildRate: 50000,
+      },
+      1,
+      [],
+    );
+    const highHousing = model.runSimulation(
+      {
+        ...presets.DEFAULT_POLICY_SETTINGS,
+        housingBuildRate: 350000,
+      },
+      1,
+      [],
+    );
+    const lowInfrastructure = model.runSimulation(
+      {
+        ...presets.DEFAULT_POLICY_SETTINGS,
+        infrastructureReadiness: 20,
+      },
+      1,
+      [],
+    );
+    const highStimulus = model.runSimulation(
+      {
+        ...presets.DEFAULT_POLICY_SETTINGS,
+        stimulusRate: 9,
+      },
+      1,
+      [],
+    );
+
+    assert(
+      highHousing.outcomes.housingStress < lowHousing.outcomes.housingStress,
+      'more housing supply should reduce housing stress',
+    );
+    assert(
+      lowInfrastructure.outcomes.absorptiveCapacityScore < baseline.outcomes.absorptiveCapacityScore,
+      'lower infrastructure readiness should reduce absorptive capacity',
+    );
+    assert(
+      highStimulus.outcomes.economicGrowth > baseline.outcomes.economicGrowth,
+      'higher stimulus should lift short-term growth in the simple model',
+    );
+    assert(
+      highStimulus.outcomes.governmentBalance < baseline.outcomes.governmentBalance,
+      'higher stimulus should worsen the budget balance',
+    );
+    assert(
+      highStimulus.outcomes.environmentalPressure > baseline.outcomes.environmentalPressure,
+      'higher stimulus should raise environmental pressure',
     );
   });
 

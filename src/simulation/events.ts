@@ -13,6 +13,7 @@ export type SimulationEvent = {
   year: number;
   intensity: number;
   explanation: string;
+  impactSummary: string;
 };
 
 export type EventEffects = {
@@ -33,6 +34,7 @@ export const DEFAULT_EVENTS: SimulationEvent[] = [
     year: 1,
     intensity: 0.7,
     explanation: 'Higher prices reduce household purchasing power and raise business costs.',
+    impactSummary: 'Lower wellbeing and growth; higher business and household cost pressure.',
   },
   {
     id: 'geopolitical',
@@ -41,6 +43,7 @@ export const DEFAULT_EVENTS: SimulationEvent[] = [
     year: 2,
     intensity: 0.6,
     explanation: 'Trade disruption lowers exporter confidence and raises public spending pressure.',
+    impactSummary: 'Lower growth and cohesion; higher spending pressure.',
   },
   {
     id: 'housing-supply',
@@ -49,6 +52,7 @@ export const DEFAULT_EVENTS: SimulationEvent[] = [
     year: 1,
     intensity: 0.8,
     explanation: 'Construction delays reduce effective housing supply and raise housing stress.',
+    impactSummary: 'Higher housing stress and weaker renter/young worker outcomes.',
   },
   {
     id: 'productivity',
@@ -57,6 +61,7 @@ export const DEFAULT_EVENTS: SimulationEvent[] = [
     year: 1,
     intensity: 0.6,
     explanation: 'Higher productivity lifts company output, wages and government revenue.',
+    impactSummary: 'Higher growth, productivity and revenue capacity.',
   },
   {
     id: 'climate',
@@ -65,6 +70,7 @@ export const DEFAULT_EVENTS: SimulationEvent[] = [
     year: 3,
     intensity: 0.7,
     explanation: 'Climate disruption damages wellbeing, infrastructure and environmental quality.',
+    impactSummary: 'Higher environmental pressure and public cost; lower growth.',
   },
   {
     id: 'policy-change',
@@ -73,6 +79,7 @@ export const DEFAULT_EVENTS: SimulationEvent[] = [
     year: 2,
     intensity: 0.5,
     explanation: 'A mid-simulation policy shift improves integration delivery but adds public cost.',
+    impactSummary: 'Higher cohesion with modest extra public spending.',
   },
 ];
 

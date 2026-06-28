@@ -20,6 +20,20 @@ export type CapacityStatus = 'Low' | 'Medium' | 'High';
 export type DebtPressure = 'Low' | 'Medium' | 'High';
 export type FinanceRating = 'Strong' | 'Improving' | 'Stable' | 'Weak' | 'Stressed';
 
+export type FinanceBreakdown = {
+  baseRevenue: number;
+  baseSpending: number;
+  taxRevenueBoost: number;
+  growthRevenueBoost: number;
+  integrationSkillsRevenueBoost: number;
+  stimulusSpendingBoost: number;
+  integrationSupportCosts: number;
+  infrastructureSpendingPressure: number;
+  eventSpending: number;
+  feedbackSpendingPressure: number;
+  climateDisasterCost: number;
+};
+
 export type Person = {
   id: string;
   role: string;
@@ -59,6 +73,7 @@ export type Government = {
   debtPressure: DebtPressure;
   financeRating: FinanceRating;
   serviceCapacity: number;
+  financeBreakdown: FinanceBreakdown;
 };
 
 export type Environment = {
@@ -91,6 +106,8 @@ export function createRepresentativeCompanies(): Company[] {
 }
 
 export function createGovernment(): Government {
+  const financeBreakdown = createFinanceBreakdown();
+
   return {
     revenue: BASE_GOVERNMENT_REVENUE,
     spending: BASE_GOVERNMENT_SPENDING,
@@ -98,6 +115,24 @@ export function createGovernment(): Government {
     debtPressure: 'Medium',
     financeRating: 'Stable',
     serviceCapacity: 64,
+    financeBreakdown,
+  };
+}
+
+function createFinanceBreakdown(overrides: Partial<FinanceBreakdown> = {}): FinanceBreakdown {
+  return {
+    baseRevenue: BASE_GOVERNMENT_REVENUE,
+    baseSpending: BASE_GOVERNMENT_SPENDING,
+    taxRevenueBoost: 0,
+    growthRevenueBoost: 0,
+    integrationSkillsRevenueBoost: 0,
+    stimulusSpendingBoost: 0,
+    integrationSupportCosts: 0,
+    infrastructureSpendingPressure: 0,
+    eventSpending: 0,
+    feedbackSpendingPressure: 0,
+    climateDisasterCost: 0,
+    ...overrides,
   };
 }
 
@@ -247,6 +282,19 @@ export function updateGovernment(
   const stimulusSpendingBoost = world.policies.stimulusRate * 15;
   const integrationSupportCosts = Math.max(0, 70 - world.policies.integrationEffectiveness) * 2;
   const infrastructureSpendingPressure = Math.max(0, 70 - world.policies.infrastructureReadiness) * 2;
+  const feedbackSpendingPressure =
+    feedbackEffects.spendingPressure + feedbackEffects.infrastructureSpendingPressure;
+  const financeBreakdown = createFinanceBreakdown({
+    taxRevenueBoost,
+    growthRevenueBoost,
+    integrationSkillsRevenueBoost,
+    stimulusSpendingBoost,
+    integrationSupportCosts,
+    infrastructureSpendingPressure,
+    eventSpending: effects.spending,
+    feedbackSpendingPressure,
+    climateDisasterCost: feedbackEffects.climateDisasterCost,
+  });
   const revenue = BASE_GOVERNMENT_REVENUE + taxRevenueBoost + growthRevenueBoost + integrationSkillsRevenueBoost;
   const spending =
     BASE_GOVERNMENT_SPENDING +
@@ -254,8 +302,7 @@ export function updateGovernment(
     integrationSupportCosts +
     infrastructureSpendingPressure +
     effects.spending +
-    feedbackEffects.spendingPressure +
-    feedbackEffects.infrastructureSpendingPressure +
+    feedbackSpendingPressure +
     feedbackEffects.climateDisasterCost;
   const budgetBalance = revenue - spending;
   const debtPressure = getDebtPressure(budgetBalance);
@@ -269,7 +316,7 @@ export function updateGovernment(
     100,
   );
 
-  return { revenue, spending, budgetBalance, debtPressure, financeRating, serviceCapacity };
+  return { revenue, spending, budgetBalance, debtPressure, financeRating, serviceCapacity, financeBreakdown };
 }
 
 export function updateEnvironment(

@@ -3,6 +3,7 @@ import type { OutcomeScores } from './model';
 export type SuccessWeights = {
   economicGrowth: number;
   wellbeing: number;
+  fairness: number;
   socialCohesion: number;
   governmentFinances: number;
   environment: number;
@@ -19,9 +20,10 @@ export type SuccessScoreResult = {
 };
 
 export const DEFAULT_SUCCESS_WEIGHTS: SuccessWeights = {
-  economicGrowth: 25,
-  wellbeing: 25,
-  socialCohesion: 20,
+  economicGrowth: 20,
+  wellbeing: 20,
+  fairness: 15,
+  socialCohesion: 15,
   governmentFinances: 15,
   environment: 15,
 };
@@ -33,6 +35,7 @@ export function calculateSuccessScore(
   const componentScores: SuccessWeights = {
     economicGrowth: scoreEconomicGrowth(outcomes.economicGrowth),
     wellbeing: outcomes.wellbeing,
+    fairness: outcomes.fairness,
     socialCohesion: outcomes.socialCohesion,
     governmentFinances: scoreGovernmentFinances(outcomes.governmentBalance),
     environment: 100 - outcomes.environmentalPressure,
@@ -117,6 +120,7 @@ function buildSuccessExplanation(topContributor: string, weakestFactor: string) 
 function getLabel(key: keyof SuccessWeights) {
   if (key === 'economicGrowth') return 'Economic Growth';
   if (key === 'wellbeing') return 'Wellbeing';
+  if (key === 'fairness') return 'Fairness';
   if (key === 'socialCohesion') return 'Social Cohesion';
   if (key === 'governmentFinances') return 'Government Finances';
   return 'Environment Score';

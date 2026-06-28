@@ -23,6 +23,7 @@ import {
 } from './entities';
 import { DEFAULT_EVENTS, getEventEffects, type SimulationEvent } from './events';
 import { buildEntityDashboard, buildEventResponses, type EntityDashboardItem, type EventResponseSummary } from './entityInsights';
+import { DEFAULT_POLICY_SETTINGS } from './presets';
 import {
   buildExplanations,
   buildNegativeDrivers,
@@ -65,6 +66,22 @@ export type SimulationResult = {
   metrics: ReturnType<typeof calculateMetrics>;
 };
 
+export type BaselineComparison = {
+  scenario: SimulationResult;
+  baseline: SimulationResult;
+  deltas: Pick<
+    OutcomeScores,
+    | 'economicGrowth'
+    | 'wellbeing'
+    | 'fairness'
+    | 'socialCohesion'
+    | 'governmentBalance'
+    | 'environmentalPressure'
+    | 'housingStress'
+  >;
+  summary: string;
+};
+
 export type World = {
   year: number;
   population: number;
@@ -97,6 +114,39 @@ export function runSimulation(
   }
 
   return buildResult(world);
+}
+
+export function compareToBaseline(
+  policies: PolicySettings,
+  horizon: SimulationHorizon,
+  selectedEventIds: string[],
+): BaselineComparison {
+  const scenario = runSimulation(policies, horizon, selectedEventIds);
+  const baseline = runSimulation(DEFAULT_POLICY_SETTINGS, horizon, selectedEventIds);
+  const deltas = {
+    economicGrowth: scenario.outcomes.economicGrowth - baseline.outcomes.economicGrowth,
+    wellbeing: scenario.outcomes.wellbeing - baseline.outcomes.wellbeing,
+    fairness: scenario.outcomes.fairness - baseline.outcomes.fairness,
+    socialCohesion: scenario.outcomes.socialCohesion - baseline.outcomes.socialCohesion,
+    governmentBalance: scenario.outcomes.governmentBalance - baseline.outcomes.governmentBalance,
+    environmentalPressure:
+      scenario.outcomes.environmentalPressure - baseline.outcomes.environmentalPressure,
+    housingStress: scenario.outcomes.housingStress - baseline.outcomes.housingStress,
+  };
+  const strongestChange = Object.entries(deltas)
+    .map(([key, value]) => ({ key, value, size: Math.abs(value) }))
+    .sort((a, b) => b.size - a.size)[0];
+
+  return {
+    scenario,
+    baseline,
+    deltas,
+    summary: `Compared with the default baseline, the largest movement is ${formatDeltaKey(strongestChange.key)} (${strongestChange.value >= 0 ? '+' : ''}${strongestChange.value.toFixed(1)}).`,
+  };
+}
+
+function formatDeltaKey(key: string) {
+  return key.replace(/[A-Z]/g, (match) => ` ${match.toLowerCase()}`);
 }
 
 function createWorld(policies: PolicySettings, events: SimulationEvent[]): World {

@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { AssumptionsPanel } from './components/AssumptionsPanel';
+import { BaselineComparisonPanel } from './components/BaselineComparison';
 import { CurrentYearFactorPanel } from './components/CurrentYearFactorPanel';
 import { EntityPanels } from './components/EntityPanels';
 import { FeedbackPanel } from './components/FeedbackPanel';
 import { PlaybackControls } from './components/PlaybackControls';
 import { ScenarioSetup } from './components/ScenarioSetup';
+import { ScenarioSummary } from './components/ScenarioSummary';
 import { SuccessScorePanel } from './components/SuccessScorePanel';
 import {
   CollapsibleSection,
@@ -16,10 +19,13 @@ import {
 } from './components/shared';
 import { formatMoney, formatNumber, formatPercent } from './components/formatters';
 import {
+  compareToBaseline,
   runSimulation,
+  type PolicySettings,
   type SimulationHorizon,
   type SimulationResult,
 } from './simulation/model';
+import { DEFAULT_POLICY_SETTINGS, SCENARIO_PRESETS } from './simulation/presets';
 import {
   DEFAULT_SUCCESS_WEIGHTS,
   buildYearlySuccessNarrative,
@@ -28,27 +34,23 @@ import {
 } from './simulation/SuccessScore';
 
 const BASE_POPULATION = 27_000_000;
-const DEFAULT_IMMIGRATION_RATE = 2;
-const DEFAULT_HOUSING_BUILD_RATE = 175_000;
-const DEFAULT_INTEGRATION_EFFECTIVENESS = 65;
-const DEFAULT_SKILLS_ALIGNMENT = 70;
-const DEFAULT_INFRASTRUCTURE_READINESS = 60;
-const DEFAULT_TAX_RATE = 25;
-const DEFAULT_STIMULUS_RATE = 2;
 const PEOPLE_PER_IMMIGRATION_PERCENT = 100_000;
 
 export default function App() {
-  const [immigrationRate, setImmigrationRate] = useState(DEFAULT_IMMIGRATION_RATE);
-  const [housingBuildRate, setHousingBuildRate] = useState(DEFAULT_HOUSING_BUILD_RATE);
-  const [integrationEffectiveness, setIntegrationEffectiveness] = useState(
-    DEFAULT_INTEGRATION_EFFECTIVENESS,
+  const [immigrationRate, setImmigrationRateState] = useState(DEFAULT_POLICY_SETTINGS.immigrationRate);
+  const [housingBuildRate, setHousingBuildRateState] = useState(
+    DEFAULT_POLICY_SETTINGS.housingBuildRate,
   );
-  const [skillsAlignment, setSkillsAlignment] = useState(DEFAULT_SKILLS_ALIGNMENT);
-  const [infrastructureReadiness, setInfrastructureReadiness] = useState(
-    DEFAULT_INFRASTRUCTURE_READINESS,
+  const [integrationEffectiveness, setIntegrationEffectivenessState] = useState(
+    DEFAULT_POLICY_SETTINGS.integrationEffectiveness,
   );
-  const [taxRate, setTaxRate] = useState(DEFAULT_TAX_RATE);
-  const [stimulusRate, setStimulusRate] = useState(DEFAULT_STIMULUS_RATE);
+  const [skillsAlignment, setSkillsAlignmentState] = useState(DEFAULT_POLICY_SETTINGS.skillsAlignment);
+  const [infrastructureReadiness, setInfrastructureReadinessState] = useState(
+    DEFAULT_POLICY_SETTINGS.infrastructureReadiness,
+  );
+  const [taxRate, setTaxRateState] = useState(DEFAULT_POLICY_SETTINGS.taxRate);
+  const [stimulusRate, setStimulusRateState] = useState(DEFAULT_POLICY_SETTINGS.stimulusRate);
+  const [selectedPresetId, setSelectedPresetId] = useState('balanced');
   const [horizon, setHorizon] = useState<SimulationHorizon>(5);
   const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
   const [simulation, setSimulation] = useState<SimulationResult | null>(null);
@@ -56,7 +58,7 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [successWeights, setSuccessWeights] = useState<SuccessWeights>(DEFAULT_SUCCESS_WEIGHTS);
 
-  const policies = useMemo(
+  const policies = useMemo<PolicySettings>(
     () => ({
       immigrationRate,
       housingBuildRate,
@@ -79,6 +81,10 @@ export default function App() {
 
   const scenarioPreview = useMemo(
     () => runSimulation(policies, horizon, selectedEventIds),
+    [horizon, policies, selectedEventIds],
+  );
+  const baselineComparison = useMemo(
+    () => compareToBaseline(policies, horizon, selectedEventIds),
     [horizon, policies, selectedEventIds],
   );
   const results = simulation ?? scenarioPreview;
@@ -116,6 +122,7 @@ export default function App() {
     feedbackExplanations: selectedFeedbackExplanations,
   });
   const metrics = results.metrics;
+  const financeBreakdown = outcomes.financeBreakdown;
   const capacityEnough =
     outcomes.absorptiveCapacityScore >= 70
       ? 'current absorptive capacity is strong enough to support the setting.'
@@ -123,16 +130,76 @@ export default function App() {
         ? 'absorptive capacity is mixed, so benefits depend on housing and services keeping pace.'
         : 'absorptive capacity is low, so migration benefits are harder to realise.';
 
+  function markManualChange() {
+    setSelectedPresetId('custom');
+    setSimulation(null);
+    setIsPlaying(false);
+  }
+
+  function setImmigrationRate(value: number) {
+    markManualChange();
+    setImmigrationRateState(value);
+  }
+
+  function setHousingBuildRate(value: number) {
+    markManualChange();
+    setHousingBuildRateState(value);
+  }
+
+  function setIntegrationEffectiveness(value: number) {
+    markManualChange();
+    setIntegrationEffectivenessState(value);
+  }
+
+  function setSkillsAlignment(value: number) {
+    markManualChange();
+    setSkillsAlignmentState(value);
+  }
+
+  function setInfrastructureReadiness(value: number) {
+    markManualChange();
+    setInfrastructureReadinessState(value);
+  }
+
+  function setTaxRate(value: number) {
+    markManualChange();
+    setTaxRateState(value);
+  }
+
+  function setStimulusRate(value: number) {
+    markManualChange();
+    setStimulusRateState(value);
+  }
+
+  function applyPreset(presetId: string) {
+    const preset = SCENARIO_PRESETS.find((item) => item.id === presetId);
+    if (!preset) return;
+
+    setSelectedPresetId(preset.id);
+    setImmigrationRateState(preset.policies.immigrationRate);
+    setHousingBuildRateState(preset.policies.housingBuildRate);
+    setIntegrationEffectivenessState(preset.policies.integrationEffectiveness);
+    setSkillsAlignmentState(preset.policies.skillsAlignment);
+    setInfrastructureReadinessState(preset.policies.infrastructureReadiness);
+    setTaxRateState(preset.policies.taxRate);
+    setStimulusRateState(preset.policies.stimulusRate);
+    setSelectedYear(1);
+    setSimulation(null);
+    setIsPlaying(false);
+  }
+
   function toggleEvent(eventId: string) {
     setSelectedEventIds((current) =>
       current.includes(eventId) ? current.filter((id) => id !== eventId) : [...current, eventId],
     );
+    setSimulation(null);
     setIsPlaying(false);
   }
 
   function changeHorizon(nextHorizon: SimulationHorizon) {
     setHorizon(nextHorizon);
     setSelectedYear((current) => Math.min(current, nextHorizon));
+    setSimulation(null);
     setIsPlaying(false);
   }
 
@@ -168,7 +235,7 @@ export default function App() {
   return (
     <main className="app-shell">
       <header className="page-header">
-        <p className="eyebrow">Version 0.3</p>
+        <p className="eyebrow">Version 0.4</p>
         <h1>Australia Policy Simulator</h1>
         <p>
           A simple prototype for exploring policy trade-offs, representative entities and
@@ -177,11 +244,16 @@ export default function App() {
         <span>Illustrative only - not a forecast.</span>
       </header>
 
+      <AssumptionsPanel />
+
       <ScenarioSetup
         horizon={horizon}
+        presets={SCENARIO_PRESETS}
         selectedEventIds={selectedEventIds}
+        selectedPresetId={selectedPresetId}
         onEventToggle={toggleEvent}
         onHorizonChange={changeHorizon}
+        onPresetSelect={applyPreset}
       />
 
       <PlaybackControls
@@ -206,6 +278,8 @@ export default function App() {
         hasStarted={simulation !== null}
         onChange={(key, value) => setSuccessWeights((current) => ({ ...current, [key]: value }))}
       />
+
+      <BaselineComparisonPanel comparison={baselineComparison} />
 
       <CollapsibleSection title="Policy Settings" defaultOpen>
         <div className="policy-grid">
@@ -262,7 +336,7 @@ export default function App() {
             />
           </PolicyCard>
 
-          <PolicyCard title="Housing">
+          <PolicyCard title="Housing & Fairness">
             <PolicySlider
               label="Housing Build Rate"
               value={housingBuildRate}
@@ -277,6 +351,13 @@ export default function App() {
               homes. Representative renters and young workers are most sensitive to the resulting
               stress.
             </InfoBox>
+            <MetricStrip
+              items={[
+                ['Housing Stress', outcomes.housingStress.toFixed(1)],
+                ['Fairness Score', outcomes.fairness.toFixed(1)],
+              ]}
+            />
+            <InfoBox>{outcomes.fairnessExplanation}</InfoBox>
           </PolicyCard>
 
           <PolicyCard title="Government & Taxation">
@@ -301,8 +382,8 @@ export default function App() {
               onChange={setStimulusRate}
             />
             <InfoBox>
-              Tax adds about {formatMoney(metrics.taxRevenueBoost)} to revenue. Stimulus adds{' '}
-              {formatMoney(metrics.stimulusSpendingBoost)} to spending.
+              Tax adds about {formatMoney(financeBreakdown.taxRevenueBoost)} to revenue. Stimulus
+              adds {formatMoney(financeBreakdown.stimulusSpendingBoost)} to spending.
             </InfoBox>
           </PolicyCard>
         </div>
@@ -370,6 +451,28 @@ export default function App() {
                 {formatPercent(metrics.housingGrowthDrag)} and active event effects.
               </li>
               <li>
+                Fairness score {outcomes.fairness.toFixed(1)} compares representative household
+                outcomes and penalises stress falling more heavily on renters and young workers.
+              </li>
+            </ul>
+          </Panel>
+
+          <Panel title="Government Finance Breakdown">
+            <ul>
+              <li>Base revenue: {formatMoney(financeBreakdown.baseRevenue)}.</li>
+              <li>Tax revenue boost: {formatMoney(financeBreakdown.taxRevenueBoost)}.</li>
+              <li>Growth revenue boost: {formatMoney(financeBreakdown.growthRevenueBoost)}.</li>
+              <li>
+                Integration and skills revenue:{' '}
+                {formatMoney(financeBreakdown.integrationSkillsRevenueBoost)}.
+              </li>
+              <li>Base spending: {formatMoney(financeBreakdown.baseSpending)}.</li>
+              <li>Stimulus spending: {formatMoney(financeBreakdown.stimulusSpendingBoost)}.</li>
+              <li>
+                Infrastructure pressure: {formatMoney(financeBreakdown.infrastructureSpendingPressure)}.
+              </li>
+              <li>Event spending: {formatMoney(financeBreakdown.eventSpending)}.</li>
+              <li>
                 Revenue {formatMoney(results.world.government.revenue)} - spending{' '}
                 {formatMoney(results.world.government.spending)} = budget balance{' '}
                 {formatMoney(outcomes.governmentBalance)}.
@@ -384,7 +487,8 @@ export default function App() {
                 skills, wellbeing and social connection state.
               </li>
               <li>
-                Household entities update consumption, housing security, cohesion and wellbeing.
+                Household entities update consumption, housing security, cohesion, fairness pressure
+                and wellbeing.
               </li>
               <li>
                 Company entities update productivity, hiring demand, profitability and investment.
@@ -397,6 +501,13 @@ export default function App() {
           </Panel>
         </div>
       </CollapsibleSection>
+
+      <ScenarioSummary
+        horizon={horizon}
+        outcomes={outcomes}
+        policies={policies}
+        selectedEventIds={selectedEventIds}
+      />
     </main>
   );
 }

@@ -1,16 +1,23 @@
 import { DEFAULT_EVENTS, type SimulationHorizon } from '../simulation/model';
+import type { ScenarioPreset } from '../simulation/presets';
 import { Panel } from './shared';
 
 export function ScenarioSetup({
   horizon,
   selectedEventIds,
+  presets,
+  selectedPresetId,
   onHorizonChange,
   onEventToggle,
+  onPresetSelect,
 }: {
   horizon: SimulationHorizon;
   selectedEventIds: string[];
+  presets: ScenarioPreset[];
+  selectedPresetId: string;
   onHorizonChange: (horizon: SimulationHorizon) => void;
   onEventToggle: (eventId: string) => void;
+  onPresetSelect: (presetId: string) => void;
 }) {
   return (
     <section className="section-block">
@@ -34,6 +41,25 @@ export function ScenarioSetup({
           </p>
         </Panel>
 
+        <Panel title="Scenario Presets">
+          <div className="preset-grid">
+            {presets.map((preset) => (
+              <button
+                className={selectedPresetId === preset.id ? 'preset-card is-active' : 'preset-card'}
+                key={preset.id}
+                type="button"
+                onClick={() => onPresetSelect(preset.id)}
+              >
+                <strong>{preset.name}</strong>
+                <span>{preset.description}</span>
+              </button>
+            ))}
+          </div>
+          <p className="panel-note">
+            Presets are starting points only. You can still adjust every slider manually.
+          </p>
+        </Panel>
+
         <Panel title="Event Queue">
           <div className="event-list">
             {DEFAULT_EVENTS.map((event) => (
@@ -46,8 +72,10 @@ export function ScenarioSetup({
                 <span>
                   <strong>{event.name}</strong>
                   <small>
-                    Year {event.year}: {event.explanation}
+                    Year {event.year} • {event.kind} • intensity {(event.intensity * 100).toFixed(0)}%
                   </small>
+                  <small>{event.explanation}</small>
+                  <small>Expected pressure: {event.impactSummary}</small>
                 </span>
               </label>
             ))}

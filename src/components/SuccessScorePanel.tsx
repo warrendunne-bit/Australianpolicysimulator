@@ -25,6 +25,11 @@ export function SuccessScorePanel({
       help: 'Uses the national wellbeing outcome directly.',
     },
     {
+      key: 'fairness',
+      label: 'Fairness',
+      help: 'Uses an illustrative distribution score across representative households.',
+    },
+    {
       key: 'socialCohesion',
       label: 'Social Cohesion',
       help: 'Uses the national cohesion outcome directly.',
@@ -60,9 +65,9 @@ export function SuccessScorePanel({
             {hasStarted ? 'Started simulation run' : 'Live preview before Start Simulation'}
           </span>
           <p>
-            Growth {weights.economicGrowth}%, Wellbeing {weights.wellbeing}%, Cohesion{' '}
-            {weights.socialCohesion}%, Finances {weights.governmentFinances}%, Environment{' '}
-            {weights.environment}%.
+            Growth {weights.economicGrowth}%, Wellbeing {weights.wellbeing}%, Fairness{' '}
+            {weights.fairness}%, Cohesion {weights.socialCohesion}%, Finances{' '}
+            {weights.governmentFinances}%, Environment {weights.environment}%.
           </p>
           <p>{score.explanation}</p>
         </div>

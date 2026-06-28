@@ -71,6 +71,11 @@ export function buildEntityDashboard(
       impacts: {
         economicGrowth: clamp((household.consumption - 50) * household.weight * 1.4, -100, 100),
         wellbeing: clamp((household.wellbeing - 50) * household.weight * 2.2, -100, 100),
+        fairness: clamp(
+          (household.housingSecurity + household.wellbeing - 110) * household.weight * 1.8,
+          -100,
+          100,
+        ),
         socialCohesion: clamp((household.cohesion - 50) * household.weight * 2, -100, 100),
         governmentFinances: clamp((household.income / 100_000) * household.weight * 12 - 5, -100, 100),
         environmentalPressure: clamp(household.consumption * household.weight * 0.7, -100, 100),
@@ -99,6 +104,7 @@ export function buildEntityDashboard(
       impacts: {
         economicGrowth: clamp((company.productivity - 50) * company.weight * 2.4, -100, 100),
         wellbeing: clamp((company.hiringDemand - 50) * company.weight * 1.2, -100, 100),
+        fairness: clamp((company.hiringDemand - 55) * company.weight * 0.8, -100, 100),
         socialCohesion: clamp((company.hiringDemand - 50) * company.weight * 0.9, -100, 100),
         governmentFinances: clamp((company.profitability - 50) * company.weight * 1.9, -100, 100),
         environmentalPressure: clamp(company.emissionsIntensity * company.weight * 1.2, -100, 100),
@@ -136,6 +142,7 @@ export function buildEntityDashboard(
       impacts: {
         economicGrowth: clamp(world.government.serviceCapacity - 50, -100, 100),
         wellbeing: clamp(world.government.serviceCapacity - 45, -100, 100),
+        fairness: clamp(world.government.serviceCapacity - 55, -100, 100),
         socialCohesion: clamp(world.government.serviceCapacity - 45, -100, 100),
         governmentFinances: clamp(world.government.budgetBalance / 2, -100, 100),
         environmentalPressure: clamp(world.policies.stimulusRate * 5, -100, 100),
@@ -160,6 +167,7 @@ export function buildEntityDashboard(
       impacts: {
         economicGrowth: clamp(-world.environment.climateDamage * 1.5, -100, 100),
         wellbeing: clamp(environmentScore - 55, -100, 100),
+        fairness: clamp((environmentScore - 55) * 0.5, -100, 100),
         socialCohesion: clamp((environmentScore - 55) * 0.6, -100, 100),
         governmentFinances: clamp(-world.environment.climateDamage * 0.8, -100, 100),
         environmentalPressure: clamp(world.environment.pressure, -100, 100),

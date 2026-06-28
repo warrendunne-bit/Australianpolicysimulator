@@ -4,6 +4,7 @@ import {
   getCapacityStatus,
   getFinanceExplanation,
   type CapacityStatus,
+  type FinanceBreakdown,
   type FinanceRating,
   type Government,
   type Environment,
@@ -25,9 +26,12 @@ export type OutcomeScores = {
   absorptiveCapacityStatus: CapacityStatus;
   economicGrowth: number;
   wellbeing: number;
+  fairness: number;
+  fairnessExplanation: string;
   socialCohesion: number;
   governmentFinances: FinanceRating;
   governmentBalance: number;
+  financeBreakdown: FinanceBreakdown;
   environmentalPressure: number;
 };
 
@@ -59,6 +63,7 @@ export type WellbeingFactor = {
 export type OutcomeContributionKey =
   | 'economicGrowth'
   | 'wellbeing'
+  | 'fairness'
   | 'socialCohesion'
   | 'governmentFinances'
   | 'environmentalPressure';
@@ -86,6 +91,7 @@ export function calculateOutcomes(
     100,
   );
   const wellbeing = weightedAverage(households, 'wellbeing');
+  const fairnessResult = calculateFairness(households, housingStress);
   const socialCohesion = clamp(
     weightedAverage(households, 'cohesion') * 0.55 +
       absorptiveCapacityScore * 0.2 +
@@ -106,10 +112,44 @@ export function calculateOutcomes(
     absorptiveCapacityStatus: getCapacityStatus(absorptiveCapacityScore),
     economicGrowth,
     wellbeing,
+    fairness: fairnessResult.score,
+    fairnessExplanation: fairnessResult.explanation,
     socialCohesion,
     governmentFinances: government.financeRating,
     governmentBalance: government.budgetBalance,
+    financeBreakdown: government.financeBreakdown,
     environmentalPressure: environment.pressure,
+  };
+}
+
+function calculateFairness(households: Household[], housingStress: number) {
+  const lowIncomeRenter = households.find((household) => household.type === 'low-income renter');
+  const youngWorker = households.find((household) => household.type === 'young worker household');
+  const highIncomeInvestor = households.find((household) => household.type === 'high-income investor');
+  const mortgageHolder = households.find(
+    (household) => household.type === 'middle-income mortgage holder',
+  );
+  const vulnerableWellbeing = weightedAverage(
+    [lowIncomeRenter, youngWorker].filter(Boolean) as Household[],
+    'wellbeing',
+  );
+  const advantagedWellbeing = weightedAverage(
+    [highIncomeInvestor, mortgageHolder].filter(Boolean) as Household[],
+    'wellbeing',
+  );
+  const vulnerableHousingSecurity = weightedAverage(
+    [lowIncomeRenter, youngWorker].filter(Boolean) as Household[],
+    'housingSecurity',
+  );
+  const wellbeingGap = Math.max(0, advantagedWellbeing - vulnerableWellbeing);
+  const housingGap = Math.max(0, 70 - vulnerableHousingSecurity);
+  const housingStressPenalty = housingStress * 0.18;
+  const score = clamp(92 - wellbeingGap * 1.4 - housingGap * 0.55 - housingStressPenalty, 0, 100);
+
+  return {
+    score,
+    explanation:
+      'Fairness compares outcomes for representative households, especially low-income renters and young workers, against more advantaged households. Severe housing stress and widening household gaps lower this illustrative score.',
   };
 }
 
@@ -181,6 +221,8 @@ export function buildExplanations(world: World) {
     wellbeing: `Wellbeing changed because representative households updated consumption, housing security and social connection under the current policy settings.${eventText}`,
     socialCohesion:
       'Social cohesion changed with integration effectiveness, infrastructure capacity, government services and pressure on housing.',
+    fairness:
+      'Fairness changed with the gap between representative household groups, especially when renters and young workers face housing stress.',
     governmentFinances: getFinanceExplanation(
       world.government.financeRating,
       world.government.budgetBalance,
@@ -198,6 +240,9 @@ export function buildPositiveDrivers(world: World, outcomes: OutcomeScores): str
       : '',
     outcomes.absorptiveCapacityScore >= 70
       ? 'Absorptive capacity is high, so households and services handle population growth more smoothly.'
+      : '',
+    outcomes.fairness >= 70
+      ? 'Fairness is a positive driver because vulnerable representative households are not falling far behind.'
       : '',
     world.government.financeRating === 'Strong' || world.government.financeRating === 'Improving'
       ? 'Government finances are a positive driver because revenue is above spending.'
@@ -218,6 +263,9 @@ export function buildNegativeDrivers(world: World, outcomes: OutcomeScores): str
       : '',
     outcomes.absorptiveCapacityStatus === 'Low'
       ? 'Low absorptive capacity is weakening cohesion and wellbeing.'
+      : '',
+    outcomes.fairness < 45
+      ? 'Fairness is weak because vulnerable representative households are carrying more of the stress.'
       : '',
     outcomes.environmentalPressure > 65
       ? 'Environmental pressure is high because growth, population and event effects are adding resource demand.'

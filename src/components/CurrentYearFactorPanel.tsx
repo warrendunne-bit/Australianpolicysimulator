@@ -29,6 +29,12 @@ export function CurrentYearFactorPanel({
       explanation: 'Reflects household consumption, housing security and social connection.',
     },
     {
+      label: 'Fairness',
+      score: successScore.componentScores.fairness,
+      previousScore: previousSuccessScore?.componentScores.fairness,
+      explanation: outcomes.fairnessExplanation,
+    },
+    {
       label: 'Social Cohesion',
       score: successScore.componentScores.socialCohesion,
       previousScore: previousSuccessScore?.componentScores.socialCohesion,

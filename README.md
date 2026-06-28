@@ -1,73 +1,96 @@
-# React + TypeScript + Vite
+# Australia Policy Simulator
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Australia Policy Simulator is a React, Vite and TypeScript app for exploring simple Australian policy trade-offs over time. It lets users adjust policy settings such as migration, housing supply, integration, skills alignment, infrastructure readiness, tax and stimulus, then compare illustrative outcomes across growth, wellbeing, social cohesion, environmental pressure and government finances.
 
-Currently, two official plugins are available:
+The project is designed as a clear public-facing simulator rather than a precise economic model. It helps people reason about trade-offs and unintended consequences, but it should not be treated as an official forecast, policy cost estimate or calibrated prediction of Australia's future.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## What the simulator is for
 
-## React Compiler
+- Testing broad policy settings in a simple interactive interface.
+- Seeing how one setting can improve one outcome while worsening another.
+- Making assumptions visible enough for discussion and iteration.
+- Supporting a lightweight GitHub Pages deployment for public sharing.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Important limitation
 
-## Expanding the ESLint configuration
+This simulator is illustrative only. The model uses simplified representative entities and hand-authored relationships between inputs and outputs. Results are not official statistics, forecasts, budget projections or policy advice.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Local development
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Install dependencies:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Run the development server:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm run dev
 ```
+
+Run the simulator tests:
+
+```bash
+npm test
+```
+
+Build the production app:
+
+```bash
+npm run build
+```
+
+Preview the production build locally:
+
+```bash
+npm run preview
+```
+
+## GitHub Pages deployment
+
+The app is published through GitHub Pages using Vite's static build output.
+
+Deploy with:
+
+```bash
+npm run deploy
+```
+
+The deployment script builds the app first via `predeploy`, then publishes the `dist` folder using `gh-pages`:
+
+```bash
+npm run build
+gh-pages -d dist --nojekyll
+```
+
+## Vite base path assumption
+
+This repository is configured for GitHub Pages under the repository path:
+
+```ts
+base: '/Australianpolicysimulator/'
+```
+
+That setting lives in `vite.config.ts` and must match the GitHub Pages repository URL path. If the repository name or Pages path changes, update the Vite `base` value before building and deploying.
+
+Do not remove the Vite base path unless the app is moved to a custom domain or a root-level site where `/` is the correct base.
+
+## Safe change workflow
+
+Before publishing changes, run:
+
+```bash
+npm test
+npm run build
+```
+
+Then deploy with:
+
+```bash
+npm run deploy
+```
+
+## Changelog
+
+See [`CHANGELOG.md`](./CHANGELOG.md) for notable project changes.
