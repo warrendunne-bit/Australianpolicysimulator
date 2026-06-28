@@ -1,3 +1,5 @@
+import { MODEL_ASSUMPTION_LIST, MODEL_ASSUMPTIONS } from '../simulation/model';
+
 export function AssumptionsPanel() {
   return (
     <section className="assumption-banner section-block">
@@ -5,15 +7,17 @@ export function AssumptionsPanel() {
         <p className="eyebrow">Model scope</p>
         <h2>Illustrative simulator, not a forecast</h2>
         <p>
-          Results come from simplified representative households, companies, government and
-          environment entities. The formulas are hand-authored to make trade-offs visible; they are
-          not calibrated official forecasts, budget estimates or policy advice.
+          {MODEL_ASSUMPTIONS.scope} Results come from simplified representative households,
+          companies, government and environment entities. The formulas are hand-authored to make
+          trade-offs visible.
         </p>
       </div>
       <ul>
-        <li>Scores are directional and intended for comparison.</li>
-        <li>Fairness is an illustrative distribution score, not a measured inequality statistic.</li>
-        <li>Use the model to ask better questions, not to claim precise predictions.</li>
+        {MODEL_ASSUMPTION_LIST.slice(1).map((assumption) => (
+          <li key={assumption.label}>
+            <strong>{assumption.label}:</strong> {assumption.value}. {assumption.explanation}
+          </li>
+        ))}
       </ul>
     </section>
   );

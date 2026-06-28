@@ -1,4 +1,5 @@
 import type { OutcomeScores } from './model';
+import { scoreEconomicGrowth, scoreEnvironment, scoreGovernmentFinances } from './outcomeModel';
 
 export type SuccessWeights = {
   economicGrowth: number;
@@ -38,7 +39,7 @@ export function calculateSuccessScore(
     fairness: outcomes.fairness,
     socialCohesion: outcomes.socialCohesion,
     governmentFinances: scoreGovernmentFinances(outcomes.governmentBalance),
-    environment: 100 - outcomes.environmentalPressure,
+    environment: scoreEnvironment(outcomes.environmentalPressure),
   };
   const totalWeight = Object.values(weights).reduce((total, weight) => total + weight, 0);
   const weightedTotal = Object.entries(weights).reduce((total, [key, weight]) => {
@@ -48,7 +49,7 @@ export function calculateSuccessScore(
   const drivers = getSuccessDrivers(componentScores, weights);
 
   return {
-    score: clamp(weightedTotal, 0, 100),
+    score: Math.max(0, Math.min(100, weightedTotal)),
     totalWeight,
     isValidWeightTotal: Math.abs(totalWeight - 100) < 0.001,
     componentScores,
@@ -87,14 +88,6 @@ export function buildYearlySuccessNarrative({
   return `Year ${year}: Overall Success ${movement}. ${topContributor} contributed most under the current weights. The score was held back by ${weakestFactor.toLowerCase()}. ${feedback}`;
 }
 
-function scoreEconomicGrowth(growth: number) {
-  return clamp(50 + growth * 8, 0, 100);
-}
-
-function scoreGovernmentFinances(balance: number) {
-  return clamp(60 + balance * 0.35, 0, 100);
-}
-
 function getSuccessDrivers(componentScores: SuccessWeights, weights: SuccessWeights) {
   const weightedComponents = Object.entries(componentScores)
     .map(([key, score]) => ({
@@ -126,6 +119,4 @@ function getLabel(key: keyof SuccessWeights) {
   return 'Environment Score';
 }
 
-function clamp(value: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, value));
-}
+

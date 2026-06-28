@@ -1,6 +1,5 @@
 import type { calculateSuccessScore } from '../simulation/SuccessScore';
-import type { AnnualOutcome, SimulationResult } from '../simulation/model';
-import { formatMoney, formatPercent } from './formatters';
+import { buildOutcomeFactorRows, type AnnualOutcome, type SimulationResult } from '../simulation/model';
 
 export function CurrentYearFactorPanel({
   outcomes,
@@ -15,51 +14,9 @@ export function CurrentYearFactorPanel({
   successScore: ReturnType<typeof calculateSuccessScore>;
   previousSuccessScore: ReturnType<typeof calculateSuccessScore> | null;
 }) {
-  const rows = [
-    {
-      label: 'Economic Growth',
-      score: successScore.componentScores.economicGrowth,
-      previousScore: previousSuccessScore?.componentScores.economicGrowth,
-      explanation: `Raw annual growth is ${formatPercent(outcomes.economicGrowth)}.`,
-    },
-    {
-      label: 'Wellbeing / Happiness',
-      score: successScore.componentScores.wellbeing,
-      previousScore: previousSuccessScore?.componentScores.wellbeing,
-      explanation: 'Reflects household consumption, housing security and social connection.',
-    },
-    {
-      label: 'Fairness',
-      score: successScore.componentScores.fairness,
-      previousScore: previousSuccessScore?.componentScores.fairness,
-      explanation: outcomes.fairnessExplanation,
-    },
-    {
-      label: 'Social Cohesion',
-      score: successScore.componentScores.socialCohesion,
-      previousScore: previousSuccessScore?.componentScores.socialCohesion,
-      explanation: 'Reflects integration, service capacity, trust and housing pressure.',
-    },
-    {
-      label: 'Government Finances',
-      score: successScore.componentScores.governmentFinances,
-      previousScore: previousSuccessScore?.componentScores.governmentFinances,
-      explanation: `Budget balance is ${formatMoney(outcomes.governmentBalance)}.`,
-    },
-    {
-      label: 'Environment Score',
-      score: successScore.componentScores.environment,
-      previousScore: previousSuccessScore?.componentScores.environment,
-      explanation: 'Calculated as 100 minus environmental pressure.',
-    },
-    {
-      label: 'Environmental Pressure',
-      score: outcomes.environmentalPressure,
-      previousScore: previousOutcomes?.environmentalPressure,
-      explanation: 'Lower pressure is better, so rising pressure weakens the scenario.',
-      lowerIsBetter: true,
-    },
-  ];
+  const rows = buildOutcomeFactorRows({ outcomes, previousOutcomes });
+  void successScore;
+  void previousSuccessScore;
 
   return (
     <section className="section-block">
@@ -70,7 +27,7 @@ export function CurrentYearFactorPanel({
           {rows.map((row) => (
             <FactorScoreRow
               explanation={row.explanation}
-              key={row.label}
+              key={row.key}
               label={row.label}
               lowerIsBetter={row.lowerIsBetter}
               previousScore={row.previousScore}

@@ -20,6 +20,7 @@ import {
 import { formatMoney, formatNumber, formatPercent } from './components/formatters';
 import {
   compareToBaseline,
+  buildTransparentCalculationNotes,
   runSimulation,
   type PolicySettings,
   type SimulationHorizon,
@@ -32,9 +33,6 @@ import {
   calculateSuccessScore,
   type SuccessWeights,
 } from './simulation/SuccessScore';
-
-const BASE_POPULATION = 27_000_000;
-const PEOPLE_PER_IMMIGRATION_PERCENT = 100_000;
 
 export default function App() {
   const [immigrationRate, setImmigrationRateState] = useState(DEFAULT_POLICY_SETTINGS.immigrationRate);
@@ -123,6 +121,7 @@ export default function App() {
   });
   const metrics = results.metrics;
   const financeBreakdown = outcomes.financeBreakdown;
+  const transparentCalculationNotes = buildTransparentCalculationNotes({ outcomes, metrics });
   const capacityEnough =
     outcomes.absorptiveCapacityScore >= 70
       ? 'current absorptive capacity is strong enough to support the setting.'
@@ -434,26 +433,9 @@ export default function App() {
         <div className="details-grid">
           <Panel title="Transparent Calculations">
             <ul>
-              <li>
-                Population begins at {formatNumber(BASE_POPULATION)} and adds{' '}
-                {formatNumber(PEOPLE_PER_IMMIGRATION_PERCENT)} people per immigration percentage
-                point in each annual step.
-              </li>
-              <li>
-                Absorptive capacity averages housing capacity, integration, skills and
-                infrastructure = {outcomes.absorptiveCapacityScore.toFixed(1)}.
-              </li>
-              <li>
-                Economic growth combines company productivity, migration boost{' '}
-                {formatPercent(metrics.immigrationGrowthBoost)}, stimulus{' '}
-                {formatPercent(metrics.stimulusGrowthBoost)}, tax drag{' '}
-                {formatPercent(metrics.taxGrowthDrag)}, housing drag{' '}
-                {formatPercent(metrics.housingGrowthDrag)} and active event effects.
-              </li>
-              <li>
-                Fairness score {outcomes.fairness.toFixed(1)} compares representative household
-                outcomes and penalises stress falling more heavily on renters and young workers.
-              </li>
+              {transparentCalculationNotes.map((note) => (
+                <li key={note}>{note}</li>
+              ))}
             </ul>
           </Panel>
 

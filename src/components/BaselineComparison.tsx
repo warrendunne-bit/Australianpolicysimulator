@@ -1,52 +1,19 @@
-import type { BaselineComparison } from '../simulation/model';
+import {
+  BASELINE_COMPARISON_OUTCOMES,
+  type BaselineComparison,
+  type OutcomeScores,
+} from '../simulation/model';
 import { formatMoney, formatPercent } from './formatters';
 import { MovementBadge } from './shared';
 
 export function BaselineComparisonPanel({ comparison }: { comparison: BaselineComparison }) {
-  const rows = [
-    {
-      label: 'Economic growth',
-      value: formatPercent(comparison.scenario.outcomes.economicGrowth),
-      baseline: formatPercent(comparison.baseline.outcomes.economicGrowth),
-      delta: comparison.deltas.economicGrowth,
-      lowerIsBetter: false,
-    },
-    {
-      label: 'Wellbeing',
-      value: comparison.scenario.outcomes.wellbeing.toFixed(1),
-      baseline: comparison.baseline.outcomes.wellbeing.toFixed(1),
-      delta: comparison.deltas.wellbeing,
-      lowerIsBetter: false,
-    },
-    {
-      label: 'Fairness',
-      value: comparison.scenario.outcomes.fairness.toFixed(1),
-      baseline: comparison.baseline.outcomes.fairness.toFixed(1),
-      delta: comparison.deltas.fairness,
-      lowerIsBetter: false,
-    },
-    {
-      label: 'Housing stress',
-      value: comparison.scenario.outcomes.housingStress.toFixed(1),
-      baseline: comparison.baseline.outcomes.housingStress.toFixed(1),
-      delta: comparison.deltas.housingStress,
-      lowerIsBetter: true,
-    },
-    {
-      label: 'Budget balance',
-      value: formatMoney(comparison.scenario.outcomes.governmentBalance),
-      baseline: formatMoney(comparison.baseline.outcomes.governmentBalance),
-      delta: comparison.deltas.governmentBalance,
-      lowerIsBetter: false,
-    },
-    {
-      label: 'Environmental pressure',
-      value: comparison.scenario.outcomes.environmentalPressure.toFixed(1),
-      baseline: comparison.baseline.outcomes.environmentalPressure.toFixed(1),
-      delta: comparison.deltas.environmentalPressure,
-      lowerIsBetter: true,
-    },
-  ];
+  const rows = BASELINE_COMPARISON_OUTCOMES.map((definition) => ({
+    label: definition.label,
+    value: formatOutcome(definition.key, comparison.scenario.outcomes[definition.key]),
+    baseline: formatOutcome(definition.key, comparison.baseline.outcomes[definition.key]),
+    delta: comparison.deltas[definition.key as keyof BaselineComparison['deltas']],
+    lowerIsBetter: definition.lowerIsBetter,
+  }));
 
   return (
     <section className="section-block baseline-panel">
@@ -66,4 +33,11 @@ export function BaselineComparisonPanel({ comparison }: { comparison: BaselineCo
       </div>
     </section>
   );
+}
+
+function formatOutcome(key: keyof OutcomeScores, value: number | string) {
+  if (typeof value !== 'number') return String(value);
+  if (key === 'economicGrowth') return formatPercent(value);
+  if (key === 'governmentBalance') return formatMoney(value);
+  return value.toFixed(1);
 }

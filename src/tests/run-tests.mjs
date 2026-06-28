@@ -295,6 +295,30 @@ try {
     );
   });
 
+  test('model definitions expose assumptions inputs outcomes and explanations', () => {
+    const simulation = model.runSimulation(presets.DEFAULT_POLICY_SETTINGS, 1, []);
+    const outcomeKeys = model.OUTCOME_DEFINITIONS.map((definition) => definition.key);
+    const policyKeys = model.POLICY_INPUT_DEFINITIONS.map((definition) => definition.key);
+
+    assert(model.MODEL_ASSUMPTION_LIST.length >= 5, 'model assumptions should be grouped');
+    assert(policyKeys.includes('immigrationRate'), 'policy input definitions should include migration');
+    assert(policyKeys.includes('housingBuildRate'), 'policy input definitions should include housing');
+    assert(outcomeKeys.includes('economicGrowth'), 'outcome definitions should include growth');
+    assert(outcomeKeys.includes('fairness'), 'outcome definitions should include fairness');
+    assert(outcomeKeys.includes('environmentalPressure'), 'outcome definitions should include environment');
+
+    for (const definition of model.OUTCOME_DEFINITIONS) {
+      const score = definition.score(simulation.outcomes);
+      const explanation = definition.explanation(simulation.outcomes);
+      assert(Number.isFinite(score), `${definition.label} should produce a numeric score`);
+      assert(score >= 0 && score <= 100, `${definition.label} score should stay in 0-100 range`);
+      assert(
+        typeof explanation === 'string' && explanation.length > 20,
+        `${definition.label} should have a clear explanation`,
+      );
+    }
+  });
+
   let failures = 0;
 
   for (const { name, fn } of tests) {

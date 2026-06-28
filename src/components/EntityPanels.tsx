@@ -1,17 +1,9 @@
 import type {
   EntityDashboardItem,
   EventResponseSummary,
-  OutcomeContributionKey,
 } from '../simulation/model';
+import { ENTITY_IMPACT_COLUMNS } from '../simulation/model';
 import { CollapsibleSection, ImpactCell, Meter, MovementBadge } from './shared';
-
-const OUTCOME_COLUMNS: { key: OutcomeContributionKey; label: string }[] = [
-  { key: 'economicGrowth', label: 'Growth' },
-  { key: 'wellbeing', label: 'Wellbeing' },
-  { key: 'socialCohesion', label: 'Cohesion' },
-  { key: 'governmentFinances', label: 'Finances' },
-  { key: 'environmentalPressure', label: 'Env. Pressure' },
-];
 
 export function EntityPanels({
   entities,
@@ -69,7 +61,7 @@ function EntityDisclosureGroup({ entities }: { entities: EntityDashboardItem[] }
             <details className="nested-disclosure">
               <summary>Details</summary>
               <div className="nested-detail-grid">
-                {OUTCOME_COLUMNS.map((column) => (
+                {ENTITY_IMPACT_COLUMNS.map((column) => (
                   <div key={column.key}>
                     <span>{column.label}</span>
                     <ImpactCell value={entity.impacts[column.key]} />
@@ -125,7 +117,7 @@ function EntityImpactMatrix({ entities }: { entities: EntityDashboardItem[] }) {
         <thead>
           <tr>
             <th>Entity</th>
-            {OUTCOME_COLUMNS.map((column) => (
+            {ENTITY_IMPACT_COLUMNS.map((column) => (
               <th key={column.key}>{column.label}</th>
             ))}
           </tr>
@@ -137,7 +129,7 @@ function EntityImpactMatrix({ entities }: { entities: EntityDashboardItem[] }) {
                 <strong>{entity.name}</strong>
                 <span>{entity.kind}</span>
               </td>
-              {OUTCOME_COLUMNS.map((column) => (
+              {ENTITY_IMPACT_COLUMNS.map((column) => (
                 <td key={column.key}>
                   <ImpactCell value={entity.impacts[column.key]} />
                 </td>
