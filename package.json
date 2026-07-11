@@ -6,10 +6,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:github": "tsc -b && vite build --base /Australianpolicysimulator/",
+    "build:vercel": "tsc -b && vite build --base /",
     "lint": "eslint .",
     "test": "node src/tests/run-tests.mjs",
     "preview": "vite preview",
-    "predeploy": "npm run build",
+    "predeploy": "npm run build:github",
     "deploy": "gh-pages -d dist --nojekyll"
   },
   "dependencies": {
