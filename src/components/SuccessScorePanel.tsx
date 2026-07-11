@@ -51,6 +51,10 @@ export function SuccessScorePanel({
   return (
     <section className="section-block">
       <h2>Overall Success Score</h2>
+      <p className="section-intro">
+        Read this as a directional comparison across the chosen priorities, not as an official
+        national performance measure.
+      </p>
       <div className="success-panel">
         <div className="success-score-card">
           <div>
@@ -70,6 +74,10 @@ export function SuccessScorePanel({
             {weights.governmentFinances}%, Environment {weights.environment}%.
           </p>
           <p>{score.explanation}</p>
+          <p>
+            A higher score means this scenario is performing better against your selected weights;
+            it does not mean the policy package is recommended.
+          </p>
         </div>
         <details className="success-weight-controls">
           <summary>Adjust score weights</summary>

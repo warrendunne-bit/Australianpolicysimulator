@@ -1,5 +1,6 @@
 import type { AnnualOutcome, OutcomeScores } from './outcomes';
 import type { PolicySettings, SimulationHorizon } from './World';
+import { DEFAULT_EVENTS } from './events';
 
 export type PolicyInputKey = keyof PolicySettings;
 
@@ -287,6 +288,7 @@ export function buildTransparentCalculationNotes({
   return [
     `Population begins at ${MODEL_ASSUMPTIONS.basePopulation.toLocaleString()} and adds ${MODEL_ASSUMPTIONS.peoplePerImmigrationPercent.toLocaleString()} people per immigration percentage point in each annual step.`,
     `Absorptive capacity averages housing capacity, integration, skills and infrastructure = ${outcomes.absorptiveCapacityScore.toFixed(1)}.`,
+    `Housing stress compares estimated new household demand with effective housing supply; current stress is ${outcomes.housingStress.toFixed(1)} and lower is better.`,
     `Economic growth combines company productivity, migration boost ${formatSignedPercent(metrics.immigrationGrowthBoost)}, stimulus ${formatSignedPercent(metrics.stimulusGrowthBoost)}, tax drag ${formatSignedPercent(metrics.taxGrowthDrag)}, housing drag ${formatSignedPercent(metrics.housingGrowthDrag)} and active event effects.`,
     `Fairness score ${outcomes.fairness.toFixed(1)} compares representative household outcomes and penalises stress falling more heavily on renters and young workers.`,
   ];
@@ -298,13 +300,20 @@ export function buildScenarioSummary(
   selectedEventIds: string[],
   outcomes: OutcomeScores,
 ) {
-  const eventText = selectedEventIds.length ? selectedEventIds.join(', ') : 'none';
+  const eventText = selectedEventIds.length
+    ? selectedEventIds
+        .map((eventId) => {
+          const event = DEFAULT_EVENTS.find((item) => item.id === eventId);
+          return event ? `${event.name} in year ${event.year}` : `Unknown event (${eventId})`;
+        })
+        .join(', ')
+    : 'none';
 
   return [
     `Australia Social Simulator scenario (${horizon} year${horizon === 1 ? '' : 's'})`,
     `Settings: immigration ${policies.immigrationRate.toFixed(1)}%, housing ${policies.housingBuildRate.toLocaleString()} homes/year, integration ${policies.integrationEffectiveness}, skills ${policies.skillsAlignment}, infrastructure ${policies.infrastructureReadiness}, tax ${policies.taxRate.toFixed(1)}%, stimulus ${policies.stimulusRate.toFixed(1)}%.`,
     `Events selected: ${eventText}.`,
-    `Headline illustrative outcomes: growth ${outcomes.economicGrowth.toFixed(1)}%, wellbeing ${outcomes.wellbeing.toFixed(1)}, fairness ${outcomes.fairness.toFixed(1)}, social cohesion ${outcomes.socialCohesion.toFixed(1)}, budget balance ${outcomes.governmentBalance.toFixed(1)}, environmental pressure ${outcomes.environmentalPressure.toFixed(1)}.`,
+    `Headline illustrative outcomes: growth ${outcomes.economicGrowth.toFixed(1)}%, wellbeing ${outcomes.wellbeing.toFixed(1)}, fairness ${outcomes.fairness.toFixed(1)}, social cohesion ${outcomes.socialCohesion.toFixed(1)}, housing stress ${outcomes.housingStress.toFixed(1)}, budget balance ${outcomes.governmentBalance.toFixed(1)}, environmental pressure ${outcomes.environmentalPressure.toFixed(1)}.`,
     'Disclaimer: this is an illustrative simplified simulator, not an official forecast, cost estimate or policy recommendation.',
   ].join('\n');
 }

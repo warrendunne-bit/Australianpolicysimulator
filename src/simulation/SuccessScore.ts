@@ -107,7 +107,7 @@ function getSuccessDrivers(componentScores: SuccessWeights, weights: SuccessWeig
 }
 
 function buildSuccessExplanation(topContributor: string, weakestFactor: string) {
-  return `Overall success is mostly supported by ${topContributor.toLowerCase()}, but the score is held back by ${weakestFactor.toLowerCase()}.`;
+  return `This illustrative score is mostly supported by ${topContributor.toLowerCase()}, but it is held back by ${weakestFactor.toLowerCase()} under the current weighting choices.`;
 }
 
 function getLabel(key: keyof SuccessWeights) {

@@ -33,6 +33,7 @@ try {
   const feedback = await server.ssrLoadModule('/simulation/FeedbackSystem.ts');
   const model = await server.ssrLoadModule('/simulation/model.ts');
   const presets = await server.ssrLoadModule('/simulation/presets.ts');
+  const immigration = await server.ssrLoadModule('/topics/immigration/index.ts');
 
   test('success score inverts environmental pressure and applies default weights', () => {
     const outcomes = {
@@ -169,6 +170,10 @@ try {
     assertClose(result.componentScores.fairness, 64, 0.001, 'fairness component');
     assertClose(result.totalWeight, 100, 0.001, 'weight total with fairness');
     assert(result.isValidWeightTotal, 'default weights including fairness should be valid');
+    assert(
+      result.explanation.includes('illustrative score'),
+      'success explanation should remind users the score is illustrative',
+    );
   });
 
   test('baseline comparison reports deltas from default policies', () => {
@@ -210,6 +215,30 @@ try {
     assert(
       fiscalRepair.policies.stimulusRate < presets.DEFAULT_POLICY_SETTINGS.stimulusRate,
       'fiscal-repair preset should reduce stimulus spending',
+    );
+  });
+
+  test('scenario summary uses plain-English event names', () => {
+    const simulation = model.runSimulation(presets.DEFAULT_POLICY_SETTINGS, 1, ['housing-supply']);
+    const summary = model.buildScenarioSummary(
+      presets.DEFAULT_POLICY_SETTINGS,
+      1,
+      ['housing-supply', 'unexpected-event'],
+      simulation.outcomes,
+    );
+
+    assert(
+      summary.includes('Housing supply shock in year 1'),
+      'summary should show the event name and timing rather than the raw event id',
+    );
+    assert(summary.includes('housing stress'), 'summary should include housing stress in headline outcomes');
+    assert(
+      !summary.includes('Events selected: housing-supply'),
+      'summary should not expose raw event ids as the primary shared wording',
+    );
+    assert(
+      summary.includes('Unknown event (unexpected-event)'),
+      'summary should degrade gracefully if an unknown event id is supplied',
     );
   });
 
@@ -317,6 +346,78 @@ try {
         `${definition.label} should have a clear explanation`,
       );
     }
+  });
+
+  test('immigration topic runs and stores every year from 2026 to 2066', () => {
+    const scenario = immigration.IMMIGRATION_SCENARIO_PRESETS.find(
+      (item) => item.id === 'current-path',
+    );
+    const run = immigration.runImmigrationScenario(scenario);
+
+    assert(run.timeline.length === 41, 'immigration timeline should store 41 annual records');
+    assert(run.timeline[0].year === 2026, 'immigration timeline should start in 2026');
+    assert(run.timeline[40].year === 2066, 'immigration timeline should run to 2066');
+    assert(
+      run.timeline.every((year) => year.briefing && year.tradeOffs.length >= 18),
+      'every immigration year should include a national briefing and trade-off assessment',
+    );
+  });
+
+  test('immigration scenarios expose required structure and scenario presets', () => {
+    const scenarioIds = immigration.IMMIGRATION_SCENARIO_PRESETS.map((scenario) => scenario.id);
+    const requiredIds = [
+      'current-path',
+      'zero-net-overseas-migration',
+      'no-new-immigration',
+      'low-immigration',
+      'skilled-migration-focus',
+      'regional-settlement-focus',
+      'high-migration',
+    ];
+
+    for (const id of requiredIds) {
+      assert(scenarioIds.includes(id), `immigration scenario preset ${id} should exist`);
+    }
+    assert(
+      immigration.IMMIGRATION_ENTITIES.length >= 40,
+      'entity foundation should include people, households, companies, government, environment and regions',
+    );
+    assert(
+      immigration.IMMIGRATION_EXPLAINER.length >= 10,
+      'explainer should cover migration concepts before simulation',
+    );
+    assert(
+      immigration.IMMIGRATION_ASSUMPTION_DEFINITIONS.length >= 15,
+      'assumption ledger should expose editable assumptions',
+    );
+    assert(
+      immigration.IMMIGRATION_CAUSE_EFFECT_MAP.length >= 12,
+      'cause-and-effect map should trace system pathways',
+    );
+  });
+
+  test('immigration myth tester is output-driven and shows trade-offs', () => {
+    const noNew = immigration.IMMIGRATION_SCENARIO_PRESETS.find(
+      (item) => item.id === 'no-new-immigration',
+    );
+    const high = immigration.IMMIGRATION_SCENARIO_PRESETS.find((item) => item.id === 'high-migration');
+    const noNewRun = immigration.runImmigrationScenario(noNew);
+    const highRun = immigration.runImmigrationScenario(high);
+    const noNew2036 = noNewRun.timeline.find((year) => year.year === 2036);
+    const high2036 = highRun.timeline.find((year) => year.year === 2036);
+
+    assert(
+      noNew2036.housingStressIndex < high2036.housingStressIndex,
+      'lower migration should reduce housing stress in the placeholder model',
+    );
+    assert(
+      noNew2036.labourSupplyIndex < high2036.labourSupplyIndex,
+      'lower migration should also reduce labour supply in the placeholder model',
+    );
+    assert(
+      high2036.mythTests.some((myth) => myth.claim === 'Immigration is either all good or all bad'),
+      'myth tester should evaluate common claims from model outputs',
+    );
   });
 
   let failures = 0;

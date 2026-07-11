@@ -20,6 +20,11 @@ export function BaselineComparisonPanel({ comparison }: { comparison: BaselineCo
       <div>
         <h2>Baseline Comparison</h2>
         <p>{comparison.summary}</p>
+        <p>
+          Baseline uses the default Balanced settings with the same time horizon and selected event
+          shocks, so the comparison isolates your policy settings rather than changing the scenario
+          context.
+        </p>
       </div>
       <div className="baseline-grid">
         {rows.map((row) => (

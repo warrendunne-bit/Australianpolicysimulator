@@ -49,6 +49,10 @@ export function FeedbackPanel({ feedback, explanations, history }: FeedbackPanel
 
   return (
     <div className="feedback-panel">
+      <p className="section-intro">
+        Feedback loops carry pressure from one year into the next, so a weak year can make later
+        policy delivery harder even if the slider settings stay the same.
+      </p>
       <div className="feedback-grid">
         {feedbackItems.map((item) => (
           <article className="feedback-card" key={item.label}>

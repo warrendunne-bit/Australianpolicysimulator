@@ -1,0 +1,1 @@
+export { ImmigrationScenarioLab } from './ImmigrationScenarioLab';

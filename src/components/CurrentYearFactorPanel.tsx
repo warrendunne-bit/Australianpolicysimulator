@@ -21,6 +21,10 @@ export function CurrentYearFactorPanel({
   return (
     <section className="section-block">
       <h2>Selected Year Outcome Factors</h2>
+      <p className="section-intro">
+        These 0-100 factors explain what is pulling the selected year up or down. For Housing
+        Stress, a lower number is better.
+      </p>
       <div className="current-factor-panel">
         <div className="selected-year-label">Selected year: Year {selectedYear}</div>
         <div className="factor-score-list">

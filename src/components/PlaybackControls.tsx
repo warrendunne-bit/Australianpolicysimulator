@@ -1,5 +1,5 @@
 export function PlaybackControls({
-  hasStarted,
+  hasPendingChanges,
   isPlaying,
   maxYear,
   selectedYear,
@@ -9,7 +9,7 @@ export function PlaybackControls({
   onStepForward,
   onYearChange,
 }: {
-  hasStarted: boolean;
+  hasPendingChanges: boolean;
   isPlaying: boolean;
   maxYear: number;
   selectedYear: number;
@@ -21,13 +21,22 @@ export function PlaybackControls({
 }) {
   return (
     <section className="section-block">
-      <h2>2. Run And Review</h2>
+      <h2>Annual Turn Controls</h2>
       <div className="playback-panel">
+        <div className="turn-status-card">
+          <span>Current governing phase</span>
+          <strong>{hasPendingChanges ? 'Decisions pending approval' : 'Reviewing enacted year'}</strong>
+          <p>
+            {hasPendingChanges
+              ? 'Policy changes are drafted but have not affected national outcomes yet.'
+              : 'Reports are showing the most recently enacted national results.'}
+          </p>
+        </div>
         <div className="playback-actions">
           <button className="primary-action" type="button" onClick={onStart}>
-            Start Simulation
+            End Year
           </button>
-          <button type="button" onClick={onPlayPause} disabled={!hasStarted}>
+          <button type="button" onClick={onPlayPause}>
             {isPlaying ? 'Pause' : 'Play'}
           </button>
           <button type="button" onClick={onStepBack} disabled={selectedYear <= 1}>
@@ -41,9 +50,9 @@ export function PlaybackControls({
           <span>
             <strong>Year {selectedYear}</strong>
             <small>
-              {hasStarted
-                ? 'Started simulation: reviewing stored yearly results'
-                : 'Preview only: sliders and events are not locked until Start Simulation'}
+              {hasPendingChanges
+                ? 'Pending decisions will apply after End Year'
+                : 'Reviewing stored yearly results'}
             </small>
           </span>
           <input

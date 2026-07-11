@@ -14,6 +14,13 @@ export function EntityPanels({
 }) {
   return (
     <>
+      <section className="section-block entity-intro">
+        <p>
+          Entity panels use representative households, companies, government and environment actors
+          to show who carries pressure in the scenario. They are not individual forecasts.
+        </p>
+      </section>
+
       <CollapsibleSection title="Household Entities">
         <EntityDisclosureGroup entities={entities.filter((entity) => entity.kind === 'Household')} />
       </CollapsibleSection>

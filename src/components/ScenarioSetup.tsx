@@ -21,7 +21,7 @@ export function ScenarioSetup({
 }) {
   return (
     <section className="section-block">
-      <h2>1. Set Up Scenario</h2>
+      <h2>Cabinet Agenda</h2>
       <div className="control-grid">
         <Panel title="Simulation Horizon">
           <div className="segmented-control" aria-label="Simulation horizon">
@@ -61,6 +61,10 @@ export function ScenarioSetup({
         </Panel>
 
         <Panel title="Event Queue">
+          <p className="panel-note compact-note">
+            Events are optional illustrative shocks, not predictions. They activate in the listed
+            year so you can test resilience under stress.
+          </p>
           <div className="event-list">
             {DEFAULT_EVENTS.map((event) => (
               <label className="event-option" key={event.id}>

@@ -1,23 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AssumptionsPanel } from './components/AssumptionsPanel';
-import { BaselineComparisonPanel } from './components/BaselineComparison';
-import { CurrentYearFactorPanel } from './components/CurrentYearFactorPanel';
-import { EntityPanels } from './components/EntityPanels';
-import { FeedbackPanel } from './components/FeedbackPanel';
-import { PlaybackControls } from './components/PlaybackControls';
-import { ScenarioSetup } from './components/ScenarioSetup';
-import { ScenarioSummary } from './components/ScenarioSummary';
-import { SuccessScorePanel } from './components/SuccessScorePanel';
 import {
-  CollapsibleSection,
-  ExplanationList,
-  InfoBox,
-  MetricStrip,
-  Panel,
-  PolicyCard,
-  PolicySlider,
-} from './components/shared';
-import { formatMoney, formatNumber, formatPercent } from './components/formatters';
+  BudgetPage,
+  DashboardPage,
+  EventsPage,
+  MapPage,
+  PoliciesPage,
+  ReportsPage,
+  SettingsPage,
+} from './components/CockpitPages';
+import { GameHeader } from './components/GameHeader';
+import { ImmigrationScenarioLab } from './components/immigration/ImmigrationScenarioLab';
 import {
   compareToBaseline,
   buildTransparentCalculationNotes,
@@ -33,6 +25,30 @@ import {
   calculateSuccessScore,
   type SuccessWeights,
 } from './simulation/SuccessScore';
+
+const COMMAND_SECTIONS = [
+  'Dashboard',
+  'Immigration',
+  'Policies',
+  'Budget',
+  'Reports',
+  'Map',
+  'Events',
+  'Settings',
+];
+
+function normaliseSection(section: string) {
+  return COMMAND_SECTIONS.find((item) => item.toLowerCase() === section.toLowerCase()) ?? 'Dashboard';
+}
+
+function sectionFromHash() {
+  if (typeof window === 'undefined') return 'Dashboard';
+  return normaliseSection(window.location.hash.replace(/^#/, '') || 'Dashboard');
+}
+
+function sectionHash(section: string) {
+  return `#${section.toLowerCase()}`;
+}
 
 export default function App() {
   const [immigrationRate, setImmigrationRateState] = useState(DEFAULT_POLICY_SETTINGS.immigrationRate);
@@ -51,9 +67,15 @@ export default function App() {
   const [selectedPresetId, setSelectedPresetId] = useState('balanced');
   const [horizon, setHorizon] = useState<SimulationHorizon>(5);
   const [selectedEventIds, setSelectedEventIds] = useState<string[]>([]);
-  const [simulation, setSimulation] = useState<SimulationResult | null>(null);
+  const [enactedPolicies, setEnactedPolicies] = useState<PolicySettings>(DEFAULT_POLICY_SETTINGS);
+  const [enactedEventIds, setEnactedEventIds] = useState<string[]>([]);
+  const [simulation, setSimulation] = useState<SimulationResult>(() =>
+    runSimulation(DEFAULT_POLICY_SETTINGS, 5, []),
+  );
   const [selectedYear, setSelectedYear] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [showTurnReveal, setShowTurnReveal] = useState(false);
+  const [activeSection, setActiveSection] = useState(sectionFromHash);
   const [successWeights, setSuccessWeights] = useState<SuccessWeights>(DEFAULT_SUCCESS_WEIGHTS);
 
   const policies = useMemo<PolicySettings>(
@@ -77,15 +99,17 @@ export default function App() {
     ],
   );
 
-  const scenarioPreview = useMemo(
-    () => runSimulation(policies, horizon, selectedEventIds),
-    [horizon, policies, selectedEventIds],
-  );
   const baselineComparison = useMemo(
-    () => compareToBaseline(policies, horizon, selectedEventIds),
-    [horizon, policies, selectedEventIds],
+    () => compareToBaseline(enactedPolicies, simulation.history.length as SimulationHorizon, enactedEventIds),
+    [enactedEventIds, enactedPolicies, simulation.history.length],
   );
-  const results = simulation ?? scenarioPreview;
+  const results = simulation;
+  const hasPendingDecisionChanges =
+    horizon !== results.history.length ||
+    selectedEventIds.join('|') !== enactedEventIds.join('|') ||
+    Object.entries(policies).some(
+      ([key, value]) => enactedPolicies[key as keyof PolicySettings] !== value,
+    );
   const selectedAnnualOutcome =
     results.history.find((item) => item.year === selectedYear) ?? results.history[0];
   const selectedEntities = selectedAnnualOutcome?.entityDashboard ?? results.entityDashboard;
@@ -131,7 +155,7 @@ export default function App() {
 
   function markManualChange() {
     setSelectedPresetId('custom');
-    setSimulation(null);
+    setShowTurnReveal(false);
     setIsPlaying(false);
   }
 
@@ -183,7 +207,6 @@ export default function App() {
     setTaxRateState(preset.policies.taxRate);
     setStimulusRateState(preset.policies.stimulusRate);
     setSelectedYear(1);
-    setSimulation(null);
     setIsPlaying(false);
   }
 
@@ -191,21 +214,22 @@ export default function App() {
     setSelectedEventIds((current) =>
       current.includes(eventId) ? current.filter((id) => id !== eventId) : [...current, eventId],
     );
-    setSimulation(null);
     setIsPlaying(false);
   }
 
   function changeHorizon(nextHorizon: SimulationHorizon) {
     setHorizon(nextHorizon);
-    setSelectedYear((current) => Math.min(current, nextHorizon));
-    setSimulation(null);
+    setSelectedYear((current) => Math.min(current, results.history.length));
     setIsPlaying(false);
   }
 
   function startSimulation() {
     const nextSimulation = runSimulation(policies, horizon, selectedEventIds);
     setSimulation(nextSimulation);
+    setEnactedPolicies(policies);
+    setEnactedEventIds(selectedEventIds);
     setSelectedYear(1);
+    setShowTurnReveal(true);
     setIsPlaying(false);
   }
 
@@ -213,6 +237,24 @@ export default function App() {
     setIsPlaying(false);
     setSelectedYear((current) => Math.min(results.history.length, Math.max(1, current + delta)));
   }
+
+  function changeActiveSection(section: string) {
+    const nextSection = normaliseSection(section);
+    setActiveSection(nextSection);
+    if (typeof window !== 'undefined' && window.location.hash !== sectionHash(nextSection)) {
+      window.location.hash = sectionHash(nextSection);
+    }
+  }
+
+  useEffect(() => {
+    function syncSectionFromHash() {
+      setActiveSection(sectionFromHash());
+    }
+
+    syncSectionFromHash();
+    window.addEventListener('hashchange', syncSectionFromHash);
+    return () => window.removeEventListener('hashchange', syncSectionFromHash);
+  }, []);
 
   useEffect(() => {
     if (!isPlaying) return undefined;
@@ -233,263 +275,146 @@ export default function App() {
 
   return (
     <main className="app-shell">
-      <header className="page-header">
-        <p className="eyebrow">Version 0.4</p>
-        <h1>Australia Policy Simulator</h1>
-        <p>
-          A simple prototype for exploring policy trade-offs, representative entities and
-          unintended consequences over time.
-        </p>
-        <span>Illustrative only - not a forecast.</span>
-      </header>
-
-      <AssumptionsPanel />
-
-      <ScenarioSetup
-        horizon={horizon}
-        presets={SCENARIO_PRESETS}
-        selectedEventIds={selectedEventIds}
-        selectedPresetId={selectedPresetId}
-        onEventToggle={toggleEvent}
-        onHorizonChange={changeHorizon}
-        onPresetSelect={applyPreset}
-      />
-
-      <PlaybackControls
-        hasStarted={simulation !== null}
-        isPlaying={isPlaying}
+      <GameHeader
+        activeSection={activeSection}
+        hasPendingChanges={hasPendingDecisionChanges}
         maxYear={results.history.length}
         selectedYear={selectedYear}
-        onStart={startSimulation}
-        onPlayPause={() => setIsPlaying((current) => !current)}
-        onStepBack={() => stepYear(-1)}
-        onStepForward={() => stepYear(1)}
-        onYearChange={(year) => {
-          setIsPlaying(false);
-          setSelectedYear(year);
-        }}
+        onEndYear={startSimulation}
+        onSectionChange={changeActiveSection}
       />
 
-      <SuccessScorePanel
-        score={successScore}
-        weights={successWeights}
-        change={successScoreChange}
-        hasStarted={simulation !== null}
-        onChange={(key, value) => setSuccessWeights((current) => ({ ...current, [key]: value }))}
-      />
-
-      <BaselineComparisonPanel comparison={baselineComparison} />
-
-      <CollapsibleSection title="Policy Settings" defaultOpen>
-        <div className="policy-grid">
-          <PolicyCard title="Population & Migration">
-            <PolicySlider
-              label="Immigration Rate"
-              value={immigrationRate}
-              min={0}
-              max={5}
-              step={0.1}
-              unit="population rate"
-              valueFormatter={formatPercent}
-              onChange={setImmigrationRate}
-            />
-            <InfoBox>
-              At {formatPercent(immigrationRate)}, immigration adds about{' '}
-              {formatNumber(outcomes.populationIncrease)} people each year and creates demand for{' '}
-              {formatNumber(outcomes.housingDemand)} homes. It contributes{' '}
-              {formatPercent(metrics.immigrationGrowthBoost)} to growth after entity capacity is
-              considered, and {capacityEnough}
-            </InfoBox>
-            <PolicySlider
-              label="Integration Effectiveness"
-              value={integrationEffectiveness}
-              min={0}
-              max={100}
-              step={1}
-              unit="employment, language, community, and civic participation"
-              onChange={setIntegrationEffectiveness}
-            />
-            <PolicySlider
-              label="Skills Alignment"
-              value={skillsAlignment}
-              min={0}
-              max={100}
-              step={1}
-              unit="match to labour shortages"
-              onChange={setSkillsAlignment}
-            />
-            <PolicySlider
-              label="Infrastructure Readiness"
-              value={infrastructureReadiness}
-              min={0}
-              max={100}
-              step={1}
-              unit="schools, hospitals, roads, transport and services"
-              onChange={setInfrastructureReadiness}
-            />
-            <MetricStrip
-              items={[
-                ['Absorptive Capacity Score', outcomes.absorptiveCapacityScore.toFixed(1)],
-                ['Absorptive Capacity Status', outcomes.absorptiveCapacityStatus],
-              ]}
-            />
-          </PolicyCard>
-
-          <PolicyCard title="Housing & Fairness">
-            <PolicySlider
-              label="Housing Build Rate"
-              value={housingBuildRate}
-              min={50_000}
-              max={350_000}
-              step={5_000}
-              unit="homes per year"
-              onChange={setHousingBuildRate}
-            />
-            <InfoBox>
-              Housing supply is compared with demand of {formatNumber(outcomes.housingDemand)}{' '}
-              homes. Representative renters and young workers are most sensitive to the resulting
-              stress.
-            </InfoBox>
-            <MetricStrip
-              items={[
-                ['Housing Stress', outcomes.housingStress.toFixed(1)],
-                ['Fairness Score', outcomes.fairness.toFixed(1)],
-              ]}
-            />
-            <InfoBox>{outcomes.fairnessExplanation}</InfoBox>
-          </PolicyCard>
-
-          <PolicyCard title="Government & Taxation">
-            <PolicySlider
-              label="Tax Rate"
-              value={taxRate}
-              min={0}
-              max={50}
-              step={1}
-              unit="of income"
-              valueFormatter={formatPercent}
-              onChange={setTaxRate}
-            />
-            <PolicySlider
-              label="Government Stimulus"
-              value={stimulusRate}
-              min={0}
-              max={10}
-              step={0.5}
-              unit="extra spending"
-              valueFormatter={formatPercent}
-              onChange={setStimulusRate}
-            />
-            <InfoBox>
-              Tax adds about {formatMoney(financeBreakdown.taxRevenueBoost)} to revenue. Stimulus
-              adds {formatMoney(financeBreakdown.stimulusSpendingBoost)} to spending.
-            </InfoBox>
-          </PolicyCard>
-        </div>
-      </CollapsibleSection>
-
-      <CurrentYearFactorPanel
-        outcomes={outcomes}
-        previousOutcomes={previousAnnualOutcome}
-        selectedYear={selectedYear}
-        successScore={successScore}
-        previousSuccessScore={previousSuccessScore}
-      />
-
-      <section className="section-block">
-        <h2>Annual Narrative Explanation</h2>
-        <article className="year-narrative standalone-narrative">
-          <strong>Year {selectedYear}</strong>
-          <p>{selectedYearSuccessNarrative}</p>
-          <p>{selectedNarrative}</p>
-        </article>
-      </section>
-
-      <EntityPanels entities={selectedEntities} eventResponses={results.eventResponses} />
-
-      <CollapsibleSection title="Active Feedback Loops">
-        <FeedbackPanel
-          feedback={selectedFeedback}
-          explanations={selectedFeedbackExplanations}
-          history={results.history}
+      {activeSection === 'Dashboard' ? (
+        <DashboardPage
+          hasPendingDecisionChanges={hasPendingDecisionChanges}
+          housingBuildRate={housingBuildRate}
+          immigrationRate={immigrationRate}
+          infrastructureReadiness={infrastructureReadiness}
+          integrationEffectiveness={integrationEffectiveness}
+          outcomes={outcomes}
+          selectedNarrative={selectedNarrative}
+          selectedYearSuccessNarrative={selectedYearSuccessNarrative}
+          showTurnReveal={showTurnReveal}
+          skillsAlignment={skillsAlignment}
+          stimulusRate={stimulusRate}
+          successScore={successScore}
+          successScoreChange={successScoreChange}
+          taxRate={taxRate}
+          onEndYear={startSimulation}
+          onSectionChange={changeActiveSection}
         />
-      </CollapsibleSection>
+      ) : null}
 
-      <CollapsibleSection title="Key Drivers">
-        <div className="explanation-grid">
-          <ExplanationList
-            title={`Year ${selectedYear} positive drivers`}
-            items={selectedPositiveDrivers}
-          />
-          <ExplanationList
-            title={`Year ${selectedYear} negative drivers`}
-            items={selectedNegativeDrivers}
-          />
-          <ExplanationList title="Key trade-offs" items={results.tradeOffs} />
-        </div>
-      </CollapsibleSection>
+      {activeSection === 'Policies' ? (
+        <PoliciesPage
+          capacityEnough={capacityEnough}
+          financeBreakdown={financeBreakdown}
+          housingBuildRate={housingBuildRate}
+          immigrationRate={immigrationRate}
+          infrastructureReadiness={infrastructureReadiness}
+          integrationEffectiveness={integrationEffectiveness}
+          metrics={metrics}
+          outcomes={outcomes}
+          skillsAlignment={skillsAlignment}
+          stimulusRate={stimulusRate}
+          taxRate={taxRate}
+          onHousingBuildChange={setHousingBuildRate}
+          onImmigrationChange={setImmigrationRate}
+          onInfrastructureChange={setInfrastructureReadiness}
+          onIntegrationChange={setIntegrationEffectiveness}
+          onSkillsChange={setSkillsAlignment}
+          onStimulusChange={setStimulusRate}
+          onTaxChange={setTaxRate}
+        />
+      ) : null}
 
-      <CollapsibleSection title="Transparent Calculations">
-        <div className="details-grid">
-          <Panel title="Transparent Calculations">
-            <ul>
-              {transparentCalculationNotes.map((note) => (
-                <li key={note}>{note}</li>
-              ))}
-            </ul>
-          </Panel>
+      {activeSection === 'Immigration' ? <ImmigrationScenarioLab /> : null}
 
-          <Panel title="Government Finance Breakdown">
-            <ul>
-              <li>Base revenue: {formatMoney(financeBreakdown.baseRevenue)}.</li>
-              <li>Tax revenue boost: {formatMoney(financeBreakdown.taxRevenueBoost)}.</li>
-              <li>Growth revenue boost: {formatMoney(financeBreakdown.growthRevenueBoost)}.</li>
-              <li>
-                Integration and skills revenue:{' '}
-                {formatMoney(financeBreakdown.integrationSkillsRevenueBoost)}.
-              </li>
-              <li>Base spending: {formatMoney(financeBreakdown.baseSpending)}.</li>
-              <li>Stimulus spending: {formatMoney(financeBreakdown.stimulusSpendingBoost)}.</li>
-              <li>
-                Infrastructure pressure: {formatMoney(financeBreakdown.infrastructureSpendingPressure)}.
-              </li>
-              <li>Event spending: {formatMoney(financeBreakdown.eventSpending)}.</li>
-              <li>
-                Revenue {formatMoney(results.world.government.revenue)} - spending{' '}
-                {formatMoney(results.world.government.spending)} = budget balance{' '}
-                {formatMoney(outcomes.governmentBalance)}.
-              </li>
-            </ul>
-          </Panel>
+      {activeSection === 'Budget' ? (
+        <BudgetPage
+          financeBreakdown={financeBreakdown}
+          outcomes={outcomes}
+          results={results}
+          stimulusRate={stimulusRate}
+          taxRate={taxRate}
+          onStimulusChange={setStimulusRate}
+          onTaxChange={setTaxRate}
+        />
+      ) : null}
 
-          <Panel title="Entity Model">
-            <ul>
-              <li>
-                Person entities sit inside representative Household entities and carry income,
-                skills, wellbeing and social connection state.
-              </li>
-              <li>
-                Household entities update consumption, housing security, cohesion, fairness pressure
-                and wellbeing.
-              </li>
-              <li>
-                Company entities update productivity, hiring demand, profitability and investment.
-              </li>
-              <li>
-                Government and Environment entities update after households and companies respond.
-              </li>
-              <li>The World object applies policies, events and annual updates, then records history.</li>
-            </ul>
-          </Panel>
-        </div>
-      </CollapsibleSection>
+      {activeSection === 'Reports' ? (
+        <ReportsPage
+          baselineComparison={baselineComparison}
+          eventResponses={results.eventResponses}
+          hasPendingDecisionChanges={hasPendingDecisionChanges}
+          history={results.history}
+          isPlaying={isPlaying}
+          maxYear={results.history.length}
+          outcomes={outcomes}
+          previousAnnualOutcome={previousAnnualOutcome}
+          previousSuccessScore={previousSuccessScore}
+          selectedEntities={selectedEntities}
+          selectedFeedback={selectedFeedback}
+          selectedFeedbackExplanations={selectedFeedbackExplanations}
+          selectedNarrative={selectedNarrative}
+          selectedNegativeDrivers={selectedNegativeDrivers}
+          selectedPositiveDrivers={selectedPositiveDrivers}
+          selectedYear={selectedYear}
+          selectedYearSuccessNarrative={selectedYearSuccessNarrative}
+          successScore={successScore}
+          successScoreChange={successScoreChange}
+          successWeights={successWeights}
+          tradeOffs={results.tradeOffs}
+          onPlayPause={() => setIsPlaying((current) => !current)}
+          onStart={startSimulation}
+          onStepBack={() => stepYear(-1)}
+          onStepForward={() => stepYear(1)}
+          onSuccessWeightChange={(key, value) =>
+            setSuccessWeights((current) => ({ ...current, [key]: value }))
+          }
+          onYearChange={(year) => {
+            setIsPlaying(false);
+            setSelectedYear(year);
+          }}
+        />
+      ) : null}
 
-      <ScenarioSummary
-        horizon={horizon}
-        outcomes={outcomes}
-        policies={policies}
-        selectedEventIds={selectedEventIds}
-      />
+      {activeSection === 'Map' ? (
+        <MapPage
+          hasPendingChanges={hasPendingDecisionChanges}
+          horizon={horizon}
+          outcomes={outcomes}
+          policies={policies}
+          selectedYear={selectedYear}
+          showTurnReveal={showTurnReveal}
+          onDismissTurnReveal={() => setShowTurnReveal(false)}
+          onEndYear={startSimulation}
+          onHousingInvestmentChange={setHousingBuildRate}
+          onImmigrationChange={setImmigrationRate}
+          onInfrastructureInvestmentChange={setInfrastructureReadiness}
+        />
+      ) : null}
+
+      {activeSection === 'Events' ? (
+        <EventsPage selectedEventIds={selectedEventIds} onEventToggle={toggleEvent} />
+      ) : null}
+
+      {activeSection === 'Settings' ? (
+        <SettingsPage
+          financeBreakdown={financeBreakdown}
+          horizon={horizon}
+          outcomes={outcomes}
+          policies={policies}
+          presets={SCENARIO_PRESETS}
+          results={results}
+          selectedEventIds={selectedEventIds}
+          selectedPresetId={selectedPresetId}
+          transparentCalculationNotes={transparentCalculationNotes}
+          onEventToggle={toggleEvent}
+          onHorizonChange={changeHorizon}
+          onPresetSelect={applyPreset}
+        />
+      ) : null}
     </main>
   );
 }

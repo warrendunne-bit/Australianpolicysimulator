@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   buildScenarioSummary,
   type OutcomeScores,
@@ -17,9 +18,15 @@ export function ScenarioSummary({
   outcomes: OutcomeScores;
 }) {
   const summary = buildScenarioSummary(policies, horizon, selectedEventIds, outcomes);
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
 
   async function copySummary() {
-    await navigator.clipboard.writeText(summary);
+    try {
+      await navigator.clipboard.writeText(summary);
+      setCopyStatus('copied');
+    } catch {
+      setCopyStatus('failed');
+    }
   }
 
   return (
@@ -33,8 +40,13 @@ export function ScenarioSummary({
       </div>
       <textarea readOnly value={summary} />
       <button type="button" onClick={() => void copySummary()}>
-        Copy summary
+        {copyStatus === 'copied' ? 'Copied summary' : 'Copy summary'}
       </button>
+      {copyStatus === 'failed' ? (
+        <p className="copy-status" role="status">
+          Copy did not work in this browser. You can still select the text manually.
+        </p>
+      ) : null}
     </section>
   );
 }
