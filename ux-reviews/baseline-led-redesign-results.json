@@ -1,0 +1,88 @@
+{
+  "date": "2026-07-12",
+  "productionUrl": "https://australianpolicysimulator.vercel.app/#immigration",
+  "redesignedLocalUrl": "http://127.0.0.1:5173/Australianpolicysimulator/",
+  "changedFiles": [
+    "src/components/pages/BaselineHomePage.tsx",
+    "src/App.tsx",
+    "src/components/GameHeader.tsx",
+    "src/components/immigration/ImmigrationScenarioLab.tsx",
+    "src/styles.css"
+  ],
+  "preservedModelFiles": [
+    "src/topics/immigration/model.ts",
+    "src/topics/immigration/assumptions.ts",
+    "src/topics/immigration/scenarios.ts",
+    "src/topics/immigration/entities.ts",
+    "src/simulation/model.ts",
+    "src/simulation/SuccessScore.ts"
+  ],
+  "verification": {
+    "npmTest": {
+      "status": "pass",
+      "command": "npm test",
+      "testsPassed": 14
+    },
+    "npmBuild": {
+      "status": "pass",
+      "command": "npm run build"
+    },
+    "npmLint": {
+      "status": "fail-pre-existing",
+      "command": "npm run lint",
+      "message": "react-refresh/only-export-components in src/components/pages/cockpitShared.tsx:91; file not changed by this redesign pass"
+    },
+    "consoleErrors": {
+      "productionImmigration": 0,
+      "redesignedLocal": 0
+    },
+    "routeChecks": [
+      "#dashboard",
+      "#current-path",
+      "#problems-to-solve",
+      "#immigration",
+      "#reports",
+      "#settings"
+    ]
+  },
+  "fixedUsabilityTasks": {
+    "production": [
+      { "id": 1, "task": "Open simulator", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Production immigration route loaded" },
+      { "id": 2, "task": "Understand Australia's current direction without changing assumptions", "result": "partial", "actions": 1, "wrongTurns": 0, "finalState": "Immigration current path visible but no national baseline-led home" },
+      { "id": 3, "task": "Identify one major risk and one opportunity", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Available in briefing/tradeoff panels" },
+      { "id": 4, "task": "Select housing affordability as outcome to improve", "result": "fail", "actions": null, "wrongTurns": null, "finalState": "No problem-first objective selector" },
+      { "id": 5, "task": "Choose an immigration policy response", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Scenario preset selected" },
+      { "id": 6, "task": "Change two assumptions", "result": "pass", "actions": 2, "wrongTurns": 0, "finalState": "Assumption sliders changed" },
+      { "id": 7, "task": "Run one simulation year", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Year advanced" },
+      { "id": 8, "task": "Move forward five years", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Run/step control used" },
+      { "id": 9, "task": "Identify main positive and negative outcomes", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Tradeoffs visible" },
+      { "id": 10, "task": "Identify principal winners and losers", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Entity cards visible" },
+      { "id": 11, "task": "Compare scenario with baseline", "result": "partial", "actions": 1, "wrongTurns": 0, "finalState": "Comparison exists but baseline not central" },
+      { "id": 12, "task": "Change one supporting policy", "result": "fail", "actions": null, "wrongTurns": null, "finalState": "No first-class supporting policy package controls" },
+      { "id": 13, "task": "Rerun scenario", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Scenario rerun" },
+      { "id": 14, "task": "Return to baseline", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Current Path preset selected" }
+    ],
+    "redesignedLocal": [
+      { "id": 1, "task": "Open simulator", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Baseline home loaded" },
+      { "id": 2, "task": "Understand Australia's current direction without changing assumptions", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Five national outcomes visible" },
+      { "id": 3, "task": "Identify one major risk and one opportunity", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Risk/opportunity cards visible" },
+      { "id": 4, "task": "Select housing affordability as outcome to improve", "result": "pass", "actions": 2, "wrongTurns": 0, "finalState": "Housing affordability selected as primary objective" },
+      { "id": 5, "task": "Choose an immigration policy response", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Policy card selected" },
+      { "id": 6, "task": "Change two assumptions", "result": "pass", "actions": 3, "wrongTurns": 0, "finalState": "Advanced settings opened and two sliders changed" },
+      { "id": 7, "task": "Run one simulation year", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Next-year control clicked" },
+      { "id": 8, "task": "Move forward five years", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Advance-five-years control clicked" },
+      { "id": 9, "task": "Identify main positive and negative outcomes", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Outcome cards/commentary/score visible" },
+      { "id": 10, "task": "Identify principal winners and losers", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Benefit/pressure panels visible" },
+      { "id": 11, "task": "Compare scenario with current-policy baseline", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Baseline chart and difference panel visible" },
+      { "id": 12, "task": "Change one supporting policy", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Supporting policy checkbox changed" },
+      { "id": 13, "task": "Rerun scenario", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "State recalculated with controls still visible" },
+      { "id": 14, "task": "Return to baseline", "result": "pass", "actions": 1, "wrongTurns": 0, "finalState": "Australia today/current path returns to baseline" }
+    ]
+  },
+  "limitations": [
+    "National baseline currently uses immigration engine as first robust scenario source rather than a complete multi-domain national model.",
+    "Score and event markers are UI-level additions and should later move into shared simulation logic with tests.",
+    "Problem-led path should later recommend packages across multiple policy topics, not only immigration.",
+    "No Vercel preview deployment was created because commit/push/deploy were not requested."
+  ]
+}

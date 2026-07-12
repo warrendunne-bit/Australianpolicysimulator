@@ -10,6 +10,7 @@ import {
 } from './components/CockpitPages';
 import { GameHeader } from './components/GameHeader';
 import { ImmigrationScenarioLab } from './components/immigration/ImmigrationScenarioLab';
+import { BaselineHomePage } from './components/pages/BaselineHomePage';
 import {
   compareToBaseline,
   buildTransparentCalculationNotes,
@@ -27,9 +28,14 @@ import {
 } from './simulation/SuccessScore';
 
 const COMMAND_SECTIONS = [
+  'Australia today',
+  'Current path',
+  'Problems to solve',
+  'Policies',
+  'My scenarios',
+  'How the model works',
   'Dashboard',
   'Immigration',
-  'Policies',
   'Budget',
   'Reports',
   'Map',
@@ -37,17 +43,44 @@ const COMMAND_SECTIONS = [
   'Settings',
 ];
 
+const SECTION_ALIASES: Record<string, string> = {
+  dashboard: 'Australia today',
+  immigration: 'Policies',
+  policies: 'Policies',
+  budget: 'How the model works',
+  reports: 'My scenarios',
+  map: 'Current path',
+  events: 'How the model works',
+  settings: 'How the model works',
+  'australia-today': 'Australia today',
+  'current-path': 'Current path',
+  'problems-to-solve': 'Problems to solve',
+  'my-scenarios': 'My scenarios',
+  'how-the-model-works': 'How the model works',
+};
+
 function normaliseSection(section: string) {
-  return COMMAND_SECTIONS.find((item) => item.toLowerCase() === section.toLowerCase()) ?? 'Dashboard';
+  const cleaned = section.trim().toLowerCase().replace(/\s+/g, '-');
+  const aliased = SECTION_ALIASES[cleaned];
+  if (aliased) return aliased;
+  return COMMAND_SECTIONS.find((item) => item.toLowerCase() === section.toLowerCase()) ?? 'Australia today';
 }
 
 function sectionFromHash() {
-  if (typeof window === 'undefined') return 'Dashboard';
-  return normaliseSection(window.location.hash.replace(/^#/, '') || 'Dashboard');
+  if (typeof window === 'undefined') return 'Australia today';
+  return normaliseSection(window.location.hash.replace(/^#/, '') || 'Australia today');
 }
 
 function sectionHash(section: string) {
-  return `#${section.toLowerCase()}`;
+  const hashes: Record<string, string> = {
+    'Australia today': '#dashboard',
+    'Current path': '#current-path',
+    'Problems to solve': '#problems-to-solve',
+    Policies: '#immigration',
+    'My scenarios': '#reports',
+    'How the model works': '#settings',
+  };
+  return hashes[section] ?? `#${section.toLowerCase().replace(/\s+/g, '-')}`;
 }
 
 export default function App() {
@@ -284,6 +317,18 @@ export default function App() {
         onSectionChange={changeActiveSection}
       />
 
+      {activeSection === 'Australia today' ? (
+        <BaselineHomePage mode="today" onSectionChange={changeActiveSection} />
+      ) : null}
+
+      {activeSection === 'Current path' ? (
+        <BaselineHomePage mode="currentPath" onSectionChange={changeActiveSection} />
+      ) : null}
+
+      {activeSection === 'Problems to solve' ? (
+        <BaselineHomePage mode="problems" onSectionChange={changeActiveSection} />
+      ) : null}
+
       {activeSection === 'Dashboard' ? (
         <DashboardPage
           hasPendingDecisionChanges={hasPendingDecisionChanges}
@@ -305,7 +350,7 @@ export default function App() {
         />
       ) : null}
 
-      {activeSection === 'Policies' ? (
+      {activeSection === 'Legacy policy sandbox' ? (
         <PoliciesPage
           capacityEnough={capacityEnough}
           financeBreakdown={financeBreakdown}
@@ -328,7 +373,7 @@ export default function App() {
         />
       ) : null}
 
-      {activeSection === 'Immigration' ? <ImmigrationScenarioLab /> : null}
+      {activeSection === 'Policies' || activeSection === 'Immigration' ? <ImmigrationScenarioLab /> : null}
 
       {activeSection === 'Budget' ? (
         <BudgetPage
@@ -342,7 +387,7 @@ export default function App() {
         />
       ) : null}
 
-      {activeSection === 'Reports' ? (
+      {activeSection === 'My scenarios' || activeSection === 'Reports' ? (
         <ReportsPage
           baselineComparison={baselineComparison}
           eventResponses={results.eventResponses}
@@ -399,7 +444,7 @@ export default function App() {
         <EventsPage selectedEventIds={selectedEventIds} onEventToggle={toggleEvent} />
       ) : null}
 
-      {activeSection === 'Settings' ? (
+      {activeSection === 'How the model works' || activeSection === 'Settings' ? (
         <SettingsPage
           financeBreakdown={financeBreakdown}
           horizon={horizon}

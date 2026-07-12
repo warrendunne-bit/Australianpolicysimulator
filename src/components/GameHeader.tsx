@@ -7,7 +7,14 @@ type GameHeaderProps = {
   onEndYear: () => void;
 };
 
-const NAV_ITEMS = ['Dashboard', 'Immigration', 'Policies', 'Budget', 'Reports', 'Map', 'Events', 'Settings'];
+const NAV_ITEMS = [
+  'Australia today',
+  'Current path',
+  'Problems to solve',
+  'Policies',
+  'My scenarios',
+  'How the model works',
+];
 
 export function GameHeader({
   selectedYear,
@@ -28,7 +35,7 @@ export function GameHeader({
         </div>
         <div>
           <h1>Australia Policy Simulator</h1>
-          <p>Make better decisions. Shape our future.</p>
+          <p>Understand the path. Test choices. Watch outcomes.</p>
         </div>
       </div>
 
@@ -48,11 +55,11 @@ export function GameHeader({
 
       <div className="game-turn-actions">
         <div className="game-year-card">
-          <strong>Year {calendarYear}</strong>
-          <span>Turn {selectedYear} of {maxYear}</span>
+          <strong>Baseline year {calendarYear}</strong>
+          <span>General model turn {selectedYear} of {maxYear}</span>
         </div>
         <button className="game-end-year-button" type="button" onClick={onEndYear}>
-          End Year <span aria-hidden="true">›</span>
+          Apply policy <span aria-hidden="true">›</span>
         </button>
         <small className={hasPendingChanges ? 'is-pending' : ''}>
           {hasPendingChanges ? 'Pending agenda' : 'Enacted results'}
@@ -64,14 +71,12 @@ export function GameHeader({
 
 function navIcon(item: string) {
   const icons: Record<string, string> = {
-    Dashboard: '⌂',
-    Immigration: '⇄',
-    Policies: '▣',
-    Budget: '$',
-    Reports: '◫',
-    Map: '⌖',
-    Events: '◷',
-    Settings: '⚙',
+    'Australia today': '⌂',
+    'Current path': '↗',
+    'Problems to solve': '◇',
+    Policies: '⇄',
+    'My scenarios': '◫',
+    'How the model works': '⚙',
   };
 
   return icons[item] ?? '•';
