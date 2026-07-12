@@ -35,10 +35,16 @@ Run the simulator tests:
 npm test
 ```
 
-Build the production app:
+Build the default production app for GitHub Pages:
 
 ```bash
 npm run build
+```
+
+Build the Vercel/root-domain version locally:
+
+```bash
+npm run build:vercel
 ```
 
 Preview the production build locally:
@@ -47,7 +53,18 @@ Preview the production build locally:
 npm run preview
 ```
 
-## GitHub Pages deployment
+## Deployment: GitHub Pages and Vercel
+
+This project deliberately supports two deployment targets with different asset paths:
+
+| Target | Source branch | Build command | Asset base | Purpose |
+| --- | --- | --- | --- | --- |
+| GitHub Pages | `gh-pages` static output | `npm run deploy` | `/Australianpolicysimulator/` | Public GitHub Pages site under the repository path |
+| Vercel | `main` source branch | `npm run build:vercel` | `/` | Root-hosted Vercel site |
+
+Do not point Vercel at the `gh-pages` branch. The `gh-pages` branch contains already-built static files for GitHub Pages, not the source app and dependencies Vercel needs to build from.
+
+### GitHub Pages deployment
 
 The app is published through GitHub Pages using Vite's static build output.
 
@@ -60,30 +77,71 @@ npm run deploy
 The deployment script builds the app first via `predeploy`, then publishes the `dist` folder using `gh-pages`:
 
 ```bash
-npm run build
+npm run build:github
 gh-pages -d dist --nojekyll
 ```
 
-## Vite base path assumption
+GitHub Pages must serve the `gh-pages` branch from the `/` root folder. The generated HTML should reference assets like:
 
-This repository is configured for GitHub Pages under the repository path:
-
-```ts
-base: '/Australianpolicysimulator/'
+```html
+/Australianpolicysimulator/assets/...
 ```
 
-That setting lives in `vite.config.ts` and must match the GitHub Pages repository URL path. If the repository name or Pages path changes, update the Vite `base` value before building and deploying.
+### Vercel deployment
+
+Vercel should deploy from the `main` branch, not `gh-pages`.
+
+The repo-level [`vercel.json`](./vercel.json) pins the Vercel build settings:
+
+```json
+{
+  "framework": "vite",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build:vercel",
+  "outputDirectory": "dist"
+}
+```
+
+The Vercel build should produce root-relative assets like:
+
+```html
+/assets/...
+```
+
+If Vercel shows an old version while GitHub Pages is current, check whether the app source changes were committed and pushed to `main`. `npm run deploy` can publish local built output to GitHub Pages, but Vercel only sees committed source from `main`.
+
+If a Vercel build log says `Branch: gh-pages` or fails with `vite: command not found`, the project is building the wrong branch. Change the Vercel project or deploy hook to use `main`.
+
+## Vite base path assumption
+
+This repository defaults to the GitHub Pages repository path, while Vercel builds override the base to `/`:
+
+```ts
+const base = process.env.VERCEL ? '/' : '/Australianpolicysimulator/'
+```
+
+That setting lives in `vite.config.ts` and must match the GitHub Pages repository URL path. If the repository name or Pages path changes, update the GitHub Pages base value before building and deploying.
 
 Do not remove the Vite base path unless the app is moved to a custom domain or a root-level site where `/` is the correct base.
 
 ## Safe change workflow
 
-Before publishing changes, run:
+Before publishing changes, run tests and both deployment builds:
 
 ```bash
 npm test
 npm run build
+npm run build:vercel
+npm run build
 ```
+
+The final `npm run build` leaves the local `dist` folder in the GitHub Pages-compatible state.
+
+For changes that should appear on both sites:
+
+1. Commit and push source changes to `main` so Vercel can build them.
+2. Confirm Vercel deploys from `main` and shows the current UI.
+3. Run `npm run deploy` to publish GitHub Pages if the Pages site also needs updating.
 
 Then deploy with:
 

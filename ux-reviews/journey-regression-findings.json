@@ -1,0 +1,236 @@
+{
+  "testName": "Policy Simulator Journey Regression",
+  "productionUrl": "https://australianpolicysimulator.vercel.app/#dashboard",
+  "previewUrl": "",
+  "testedAt": "2026-07-11T11:18:19Z",
+  "overallDecision": "Unable to determine",
+  "summary": {
+    "productionTasksPassed": 7,
+    "previewTasksPassed": 0,
+    "productionTotalActions": 10,
+    "previewTotalActions": 0,
+    "productionWrongTurns": 0,
+    "previewWrongTurns": 0,
+    "productionConsoleErrors": 0,
+    "previewConsoleErrors": 0
+  },
+  "tasks": [
+    {
+      "taskNumber": 1,
+      "taskName": "Open the simulator",
+      "production": {
+        "status": "Pass",
+        "actions": 0,
+        "scrolling": "None",
+        "wrongTurns": [],
+        "unclearLabels": ["End Year is visible before the turn model is explained", "Enacted results may not be meaningful to a first-time user"],
+        "consoleErrors": [],
+        "finalState": "Dashboard loaded; Year 2020 / Turn 1 of 5 / ENACTED RESULTS; National situation dashboard; national score 66.6; adjustment cards visible.",
+        "screenshots": ["production-task-01-open (browser visual evidence captured)"]
+      },
+      "preview": {
+        "status": "Not tested",
+        "actions": 0,
+        "scrolling": "",
+        "wrongTurns": [],
+        "unclearLabels": [],
+        "consoleErrors": [],
+        "finalState": "Preview URL not provided.",
+        "screenshots": []
+      },
+      "comparison": "Not comparable",
+      "finding": "Production loads successfully and the dashboard starting point is identifiable. No preview comparison possible."
+    },
+    {
+      "taskNumber": 2,
+      "taskName": "Select an immigration scenario",
+      "production": {
+        "status": "Pass",
+        "actions": 2,
+        "scrolling": "Scenario presets visible after opening Immigration section.",
+        "wrongTurns": [],
+        "unclearLabels": ["Selected state is clearest in the Active year card, not on the selected preset card itself"],
+        "consoleErrors": [],
+        "finalState": "Immigration Scenario Lab active year 2026; scenario No New Immigration selected.",
+        "screenshots": ["production-task-02-scenario-selected (browser visual evidence captured)"]
+      },
+      "preview": {
+        "status": "Not tested",
+        "actions": 0,
+        "scrolling": "",
+        "wrongTurns": [],
+        "unclearLabels": [],
+        "consoleErrors": [],
+        "finalState": "Preview URL not provided.",
+        "screenshots": []
+      },
+      "comparison": "Not comparable",
+      "finding": "Scenario selection works on production. No preview comparison possible."
+    },
+    {
+      "taskNumber": 3,
+      "taskName": "Change two assumptions",
+      "production": {
+        "status": "Partial pass",
+        "actions": 2,
+        "scrolling": "Substantial task-relevant scrolling/exploration needed to reach the Assumption Ledger below scenario controls, annual result, winners/losers, myth tester and cause map.",
+        "wrongTurns": [],
+        "unclearLabels": ["Assumption Ledger is clear once found, but it is far below the scenario selector", "Slider/keyboard adjustment produced large jumps"],
+        "consoleErrors": [],
+        "finalState": "No New Immigration; active year 2026; Net overseas migration changed from -80,000 people/year to 310,000 people/year; Migrant working-age share changed from 55% to 71%.",
+        "screenshots": ["production-task-03-assumptions-changed (browser visual evidence captured)"]
+      },
+      "preview": {
+        "status": "Not tested",
+        "actions": 0,
+        "scrolling": "",
+        "wrongTurns": [],
+        "unclearLabels": [],
+        "consoleErrors": [],
+        "finalState": "Preview URL not provided.",
+        "screenshots": []
+      },
+      "comparison": "Not comparable",
+      "finding": "Two assumptions can be changed, but the task requires enough discovery friction to mark as partial pass."
+    },
+    {
+      "taskNumber": 4,
+      "taskName": "Run one simulation turn",
+      "production": {
+        "status": "Pass",
+        "actions": 1,
+        "scrolling": "None beyond current position.",
+        "wrongTurns": [],
+        "unclearLabels": ["Global app header stayed Year 2020 / Turn 1 of 5 while Immigration Lab active year changed to 2027"],
+        "consoleErrors": [],
+        "finalState": "Clicked Step Forward once; Immigration Lab active year 2027; scenario No New Immigration; Population 27,740,000; Housing Stress 41; Labour Supply 47; Services Pressure 100; Environment 47.",
+        "screenshots": ["production-task-04-turn-completed (browser visual evidence captured)"]
+      },
+      "preview": {
+        "status": "Not tested",
+        "actions": 0,
+        "scrolling": "",
+        "wrongTurns": [],
+        "unclearLabels": [],
+        "consoleErrors": [],
+        "finalState": "Preview URL not provided.",
+        "screenshots": []
+      },
+      "comparison": "Not comparable",
+      "finding": "One turn completes in the Immigration Lab, but cross-page year context is confusing."
+    },
+    {
+      "taskNumber": 5,
+      "taskName": "Move forward five years",
+      "production": {
+        "status": "Pass",
+        "actions": 4,
+        "scrolling": "None beyond current position.",
+        "wrongTurns": [],
+        "unclearLabels": ["Global app header stayed Year 2020 / Turn 1 of 5 while Immigration Lab active year reached 2031"],
+        "consoleErrors": [],
+        "finalState": "Clicked Step Forward four additional times; Immigration Lab active year 2031, five years after starting year 2026; scenario No New Immigration.",
+        "screenshots": ["production-task-05-five-year-result (browser visual evidence captured)"]
+      },
+      "preview": {
+        "status": "Not tested",
+        "actions": 0,
+        "scrolling": "",
+        "wrongTurns": [],
+        "unclearLabels": [],
+        "consoleErrors": [],
+        "finalState": "Preview URL not provided.",
+        "screenshots": []
+      },
+      "comparison": "Not comparable",
+      "finding": "Production reaches a clear five-year result in the Immigration Lab. No preview comparison possible."
+    },
+    {
+      "taskNumber": 6,
+      "taskName": "Identify the main positive and negative outcomes",
+      "production": {
+        "status": "Pass",
+        "actions": 0,
+        "scrolling": "None beyond current visible result area.",
+        "wrongTurns": [],
+        "unclearLabels": ["The interface does not explicitly rank most significant positive and negative outcomes"],
+        "consoleErrors": [],
+        "finalState": "At 2031, visible outcomes included Population 29,420,000; Housing Stress 41; Labour Supply 51; Services Pressure 100; Environment 59. Positive identified: Labour Supply 51 / 14,121,600 working-age people. Negative identified: Services Pressure 100; Environment 59 also negative because lower is better.",
+        "screenshots": ["production-task-06-outcomes (browser visual evidence captured)"]
+      },
+      "preview": {
+        "status": "Not tested",
+        "actions": 0,
+        "scrolling": "",
+        "wrongTurns": [],
+        "unclearLabels": [],
+        "consoleErrors": [],
+        "finalState": "Preview URL not provided.",
+        "screenshots": []
+      },
+      "comparison": "Not comparable",
+      "finding": "Positive and negative outcomes can be identified, but importance must be inferred."
+    },
+    {
+      "taskNumber": 7,
+      "taskName": "Find the winners and losers",
+      "production": {
+        "status": "Pass",
+        "actions": 0,
+        "scrolling": "None beyond current visible winners/losers area.",
+        "wrongTurns": [],
+        "unclearLabels": ["Winners/losers cards are dense and numerous"],
+        "consoleErrors": [],
+        "finalState": "Winner visible: First-home buyers, POSITIVE, current 8.4, cumulative 20.1, confidence medium. Loser visible: Homeowners, NEGATIVE, current -9.4, cumulative -22.4, confidence low. Additional loser: State governments, NEGATIVE, current -16.1, cumulative -38.5.",
+        "screenshots": ["production-task-07-winners-losers (browser visual evidence captured)"]
+      },
+      "preview": {
+        "status": "Not tested",
+        "actions": 0,
+        "scrolling": "",
+        "wrongTurns": [],
+        "unclearLabels": [],
+        "consoleErrors": [],
+        "finalState": "Preview URL not provided.",
+        "screenshots": []
+      },
+      "comparison": "Not comparable",
+      "finding": "Winners and losers are available in production. No preview comparison possible."
+    },
+    {
+      "taskNumber": 8,
+      "taskName": "Return to the baseline",
+      "production": {
+        "status": "Pass",
+        "actions": 1,
+        "scrolling": "None beyond current position.",
+        "wrongTurns": [],
+        "unclearLabels": ["Reset scenario may be ambiguous: it resets the selected scenario, not necessarily the whole app to Current Path"],
+        "consoleErrors": [],
+        "finalState": "Clicked Reset scenario; active year returned to 2026; scenario remained No New Immigration; Net overseas migration returned to -80,000 people/year; Migrant working-age share returned to 55%; 2031 result no longer appeared active.",
+        "screenshots": ["production-task-08-reset (browser visual evidence captured)"]
+      },
+      "preview": {
+        "status": "Not tested",
+        "actions": 0,
+        "scrolling": "",
+        "wrongTurns": [],
+        "unclearLabels": [],
+        "consoleErrors": [],
+        "finalState": "Preview URL not provided.",
+        "screenshots": []
+      },
+      "comparison": "Not comparable",
+      "finding": "Reset scenario succeeded for the selected scenario baseline. No preview comparison possible."
+    }
+  ],
+  "improvements": [],
+  "regressions": [],
+  "acceptanceTests": [
+    "Select No New Immigration, change Net overseas migration and Migrant working-age share, advance to 2031, click Reset scenario, and verify active year returns to 2026 with both changed assumptions restored to selected-scenario defaults without refresh.",
+    "Advance Immigration Lab from 2026 to 2031 and verify all visible year indicators make clear whether they refer to the whole app turn loop or the immigration topic model.",
+    "Ask a first-time user to change two immigration assumptions; pass if they can find the assumption controls without opening unrelated sections or needing facilitator help.",
+    "At a five-year result, ask a first-time user to identify the largest positive and negative outcomes; pass if the interface clearly surfaces the most significant positive and negative effects without requiring inference from many cards."
+  ],
+  "finalRecommendation": "Use this report as the production baseline. Do not make a merge/release decision from this run alone; provide a Vercel preview URL and rerun the same journey for a true regression comparison."
+}

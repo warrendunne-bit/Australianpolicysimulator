@@ -24,6 +24,7 @@ import {
 import { DEFAULT_EVENTS, getEventEffects, type SimulationEvent } from './events';
 import { buildEntityDashboard, buildEventResponses, type EntityDashboardItem, type EventResponseSummary } from './entityInsights';
 import { DEFAULT_POLICY_SETTINGS } from './presets';
+import { GENERAL_BASELINE_VALUES } from '../model';
 import {
   buildExplanations,
   buildNegativeDrivers,
@@ -96,10 +97,10 @@ export type World = {
   history: AnnualOutcome[];
 };
 
-const BASE_POPULATION = 27_000_000;
-const PEOPLE_PER_IMMIGRATION_PERCENT = 100_000;
-const AVERAGE_HOUSEHOLD_SIZE = 2.5;
-const BASE_ECONOMIC_GROWTH = 2;
+const BASE_POPULATION = GENERAL_BASELINE_VALUES.population;
+const PEOPLE_PER_IMMIGRATION_PERCENT = GENERAL_BASELINE_VALUES.peoplePerImmigrationPercent;
+const AVERAGE_HOUSEHOLD_SIZE = GENERAL_BASELINE_VALUES.averageHouseholdSize;
+const BASE_ECONOMIC_GROWTH = GENERAL_BASELINE_VALUES.baseEconomicGrowth;
 
 export function runSimulation(
   policies: PolicySettings,

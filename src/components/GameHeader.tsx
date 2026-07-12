@@ -1,3 +1,5 @@
+import { getActiveBaselineVersion } from '../model';
+
 type GameHeaderProps = {
   selectedYear: number;
   maxYear: number;
@@ -24,7 +26,8 @@ export function GameHeader({
   onSectionChange,
   onEndYear,
 }: GameHeaderProps) {
-  const calendarYear = 2020 + selectedYear - 1;
+  const baselineVersion = getActiveBaselineVersion();
+  const calendarYear = baselineVersion.referenceYear + selectedYear - 1;
 
   return (
     <header className="game-header">
@@ -55,7 +58,7 @@ export function GameHeader({
 
       <div className="game-turn-actions">
         <div className="game-year-card">
-          <strong>Baseline year {calendarYear}</strong>
+          <strong>Australian baseline v1.0 · {calendarYear}</strong>
           <span>General model turn {selectedYear} of {maxYear}</span>
         </div>
         <button className="game-end-year-button" type="button" onClick={onEndYear}>

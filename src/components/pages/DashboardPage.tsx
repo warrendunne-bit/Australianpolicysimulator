@@ -45,16 +45,17 @@ export function DashboardPage({
         <h2>National situation dashboard</h2>
         <p>
           Growth is improving, but the annual agenda must balance housing, services, fairness,
-          environment and the budget. Review the current situation, adjust the major levers, then
-          press <strong>End Year</strong> to reveal consequences.
+          environment and the budget. The cards below show the most recently enacted results.
+          Adjust the major levers to draft a pending agenda, then press <strong>End Year</strong> to
+          apply those choices and refresh the annual consequences.
         </p>
         <ul>
           <li>Overall national score: <strong>{successScore.score.toFixed(1)}</strong></li>
           <li>{selectedYearSuccessNarrative}</li>
           <li>
             {hasPendingDecisionChanges
-              ? 'There are pending policy changes awaiting cabinet approval.'
-              : 'Displayed results reflect the enacted annual agenda.'}
+              ? 'Pending agenda drafted: national results will update after End Year.'
+              : 'No pending agenda: displayed results reflect the enacted annual agenda.'}
           </li>
         </ul>
       </div>

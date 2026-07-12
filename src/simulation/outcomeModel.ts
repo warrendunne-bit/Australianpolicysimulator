@@ -1,6 +1,7 @@
 import type { AnnualOutcome, OutcomeScores } from './outcomes';
 import type { PolicySettings, SimulationHorizon } from './World';
 import { DEFAULT_EVENTS } from './events';
+import { GENERAL_BASELINE_VALUES } from '../model';
 
 export type PolicyInputKey = keyof PolicySettings;
 
@@ -48,10 +49,10 @@ export type OutcomeFactorRow = {
 };
 
 export const MODEL_ASSUMPTIONS = {
-  basePopulation: 27_000_000,
-  peoplePerImmigrationPercent: 100_000,
-  averageHouseholdSize: 2.5,
-  baseEconomicGrowth: 2,
+  basePopulation: GENERAL_BASELINE_VALUES.population,
+  peoplePerImmigrationPercent: GENERAL_BASELINE_VALUES.peoplePerImmigrationPercent,
+  averageHouseholdSize: GENERAL_BASELINE_VALUES.averageHouseholdSize,
+  baseEconomicGrowth: GENERAL_BASELINE_VALUES.baseEconomicGrowth,
   scope:
     'Illustrative scenario model only. It is not calibrated to official Australian forecasts, budget estimates or policy advice.',
 } as const;

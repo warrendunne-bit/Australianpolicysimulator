@@ -1,6 +1,7 @@
 import type { FeedbackEffects } from './FeedbackSystem';
 import type { EventEffects } from './events';
 import type { PolicySettings, World } from './World';
+import { GENERAL_BASELINE_VALUES } from '../model';
 
 export type HouseholdType =
   | 'low-income renter'
@@ -82,8 +83,8 @@ export type Environment = {
   resourceUse: number;
 };
 
-export const BASE_GOVERNMENT_REVENUE = 600;
-export const BASE_GOVERNMENT_SPENDING = 620;
+export const BASE_GOVERNMENT_REVENUE = GENERAL_BASELINE_VALUES.baseGovernmentRevenue;
+export const BASE_GOVERNMENT_SPENDING = GENERAL_BASELINE_VALUES.baseGovernmentSpending;
 
 export function createRepresentativeHouseholds(): Household[] {
   return [

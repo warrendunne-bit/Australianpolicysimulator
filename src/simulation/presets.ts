@@ -1,4 +1,5 @@
 import type { PolicySettings } from './World';
+import { GENERAL_DEFAULT_POLICY_VALUES } from '../model';
 
 export type ScenarioPreset = {
   id: string;
@@ -8,13 +9,13 @@ export type ScenarioPreset = {
 };
 
 export const DEFAULT_POLICY_SETTINGS: PolicySettings = {
-  immigrationRate: 2,
-  housingBuildRate: 175_000,
-  integrationEffectiveness: 65,
-  skillsAlignment: 70,
-  infrastructureReadiness: 60,
-  taxRate: 25,
-  stimulusRate: 2,
+  immigrationRate: GENERAL_DEFAULT_POLICY_VALUES.immigrationRate,
+  housingBuildRate: GENERAL_DEFAULT_POLICY_VALUES.housingBuildRate,
+  integrationEffectiveness: GENERAL_DEFAULT_POLICY_VALUES.integrationEffectiveness,
+  skillsAlignment: GENERAL_DEFAULT_POLICY_VALUES.skillsAlignment,
+  infrastructureReadiness: GENERAL_DEFAULT_POLICY_VALUES.infrastructureReadiness,
+  taxRate: GENERAL_DEFAULT_POLICY_VALUES.taxRate,
+  stimulusRate: GENERAL_DEFAULT_POLICY_VALUES.stimulusRate,
 };
 
 export const SCENARIO_PRESETS: ScenarioPreset[] = [

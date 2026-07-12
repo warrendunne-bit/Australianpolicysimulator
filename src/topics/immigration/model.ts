@@ -2,8 +2,10 @@ import type { ImmigrationAssumptions } from './assumptions';
 import type { ConfidenceRating, NetImpact, TradeOffGroup } from './entities';
 import { TRADE_OFF_GROUPS } from './entities';
 import { buildScenarioAssumptions, type ImmigrationScenarioPreset } from './scenarios';
+import { getActiveBaselineVersion } from '../../model/data/baseline/baselineVersions';
+import { getBaselineVariable } from '../../model/data/baseline/variables';
 
-export const IMMIGRATION_START_YEAR = 2026;
+export const IMMIGRATION_START_YEAR = getActiveBaselineVersion().referenceYear;
 export const IMMIGRATION_END_YEAR = 2066;
 export const IMMIGRATION_TIMELINE_YEARS = Array.from(
   { length: IMMIGRATION_END_YEAR - IMMIGRATION_START_YEAR + 1 },
@@ -42,6 +44,20 @@ export type ImmigrationYearMetrics = {
   capitalCityPressure: number;
   socialCohesionRisk: number;
   dependencyRatio: number;
+  gdpIndex: number;
+  gdpPerPersonIndex: number;
+  employedPeople: number;
+  unemployedPeople: number;
+  unemploymentRate: number;
+  rentalVacancyRate: number;
+  rentPressureIndex: number;
+  affordabilityIndex: number;
+  studentArrivals: number;
+  otherTemporaryArrivals: number;
+  permanentOrLongTermArrivals: number;
+  commonwealthRevenueDollars: number;
+  commonwealthSpendingDollars: number;
+  commonwealthBalanceDollars: number;
 };
 
 export type NationalBriefing = {
@@ -96,9 +112,16 @@ export type ImmigrationSimulationResult = {
   timeline: ImmigrationSimulationYear[];
 };
 
-const BASE_POPULATION = 26_900_000;
-const BASE_DWELLINGS = 10_950_000;
-const BASE_MIGRANTS_ALREADY_IN_AUSTRALIA = 8_200_000;
+const BASE_POPULATION = getBaselineVariable('baseline.population.total').value;
+const BASE_DWELLINGS = getBaselineVariable('baseline.housing.dwellingStock').value;
+const BASE_MIGRANTS_ALREADY_IN_AUSTRALIA = getBaselineVariable('baseline.population.migrantStock').value;
+const AVERAGE_HOUSEHOLD_SIZE = getBaselineVariable('baseline.housing.householdSize.immigration').value;
+const BASE_EMPLOYMENT_TO_POPULATION_RATIO = getBaselineVariable('baseline.labour.employmentToPopulationRatio').value;
+const BASE_UNEMPLOYMENT_RATE = getBaselineVariable('baseline.labour.unemploymentRate').value;
+const BASE_GDP_QUARTERLY_GROWTH = getBaselineVariable('baseline.economy.gdpQuarterlyGrowth').value;
+const BASE_COMMONWEALTH_REVENUE_MILLIONS = getBaselineVariable('baseline.fiscal.commonwealthRevenue').value;
+const BASE_COMMONWEALTH_EXPENSES_MILLIONS = getBaselineVariable('baseline.fiscal.commonwealthExpenses').value;
+const BASE_STUDENT_ARRIVALS = getBaselineVariable('baseline.migration.temporaryStudents').value;
 
 export const IMMIGRATION_CAUSE_EFFECT_MAP: CauseEffectNode[] = [
   { id: 'migration-setting', label: 'Migration setting changes', timing: 'immediate', explanation: 'The selected scenario changes the net flow of arrivals and departures.', downstream: ['population-growth', 'age-structure'] },
@@ -141,6 +164,9 @@ export function runImmigrationScenario(
     const netOverseasMigration = assumptions.netOverseasMigration;
     const departures = Math.max(45_000, Math.round(Math.max(0, -netOverseasMigration) + Math.max(120_000, Math.abs(netOverseasMigration) * 0.32)));
     const arrivals = Math.max(0, Math.round(netOverseasMigration + departures));
+    const studentArrivals = Math.max(0, Math.round(Math.min(arrivals, BASE_STUDENT_ARRIVALS * Math.max(0, arrivals / 568_000))));
+    const permanentOrLongTermArrivals = Math.max(0, Math.round(arrivals * clamp(0.34 + assumptions.migrantWorkingAgeShare / 500, 0.28, 0.52)));
+    const otherTemporaryArrivals = Math.max(0, arrivals - studentArrivals - permanentOrLongTermArrivals);
     const naturalIncrease = assumptions.naturalIncrease + (assumptions.fertilityRate - 1.65) * 45_000 - (assumptions.deathRate - 7.1) * 12_000;
     const annualPopulationChange = Math.round(netOverseasMigration + naturalIncrease);
 
@@ -150,10 +176,13 @@ export function runImmigrationScenario(
 
     const effectiveBuildRate = assumptions.housingBuildRate * (1 - assumptions.constructionLabourConstraint / 180);
     dwellingStock += Math.max(30_000, effectiveBuildRate);
-    const householdDemand = population / 2.52;
+    const householdDemand = population / AVERAGE_HOUSEHOLD_SIZE;
     const annualShortfall = householdDemand - dwellingStock;
     cumulativeShortfall = Math.max(0, cumulativeShortfall * 0.88 + annualShortfall);
-    const housingStressIndex = clamp(44 + cumulativeShortfall / 45_000 + Math.max(0, netOverseasMigration - 180_000) / 18_000 - assumptions.housingBuildRate / 18_000, 10, 100);
+    const rentalVacancyRate = clamp(2.6 - cumulativeShortfall / 1_200_000 - Math.max(0, netOverseasMigration - 180_000) / 240_000 + assumptions.housingBuildRate / 500_000, 0.4, 5.5);
+    const rentPressureIndex = clamp(70 - rentalVacancyRate * 12 + Math.max(0, cumulativeShortfall) / 70_000, 5, 100);
+    const affordabilityIndex = clamp(72 - rentPressureIndex * 0.42 + (assumptions.housingBuildRate - 175_000) / 11_000, 5, 100);
+    const housingStressIndex = clamp(44 + cumulativeShortfall / 45_000 + Math.max(0, netOverseasMigration - 180_000) / 18_000 - assumptions.housingBuildRate / 18_000 + rentPressureIndex * 0.08 - affordabilityIndex * 0.05, 10, 100);
 
     const workingAgePopulation = population * workforceAgeShare;
     const retirees = population * retireeShare;
@@ -162,8 +191,17 @@ export function runImmigrationScenario(
     const labourSupplyIndex = clamp(58 + (workingAgePopulation / BASE_POPULATION - 0.58) * 130 + (assumptions.workforceParticipation - 67) * 1.4, 20, 100);
     const constructionCapacityIndex = clamp(62 + labourSupplyIndex * 0.18 - assumptions.constructionLabourConstraint * 0.7 + Math.max(0, netOverseasMigration) / 22_000, 10, 100);
     const businessCapacityIndex = clamp(52 + labourSupplyIndex * 0.34 + assumptions.productivityGrowth * 8 - housingStressIndex * 0.14, 10, 100);
+    const employmentRate = clamp(BASE_EMPLOYMENT_TO_POPULATION_RATIO + (assumptions.workforceParticipation - 67) * 0.22 + (businessCapacityIndex - 55) * 0.04 - Math.max(0, housingStressIndex - 60) * 0.015, 55, 69);
+    const employedPeople = population * (employmentRate / 100);
+    const unemploymentRate = clamp(BASE_UNEMPLOYMENT_RATE - (businessCapacityIndex - 55) * 0.035 + Math.max(0, housingStressIndex - 65) * 0.015, 2.5, 9);
+    const unemployedPeople = employedPeople * (unemploymentRate / Math.max(1, 100 - unemploymentRate));
+    const gdpIndex = clamp(100 + elapsed * (BASE_GDP_QUARTERLY_GROWTH * 4 + assumptions.productivityGrowth + (employmentRate - BASE_EMPLOYMENT_TO_POPULATION_RATIO) * 0.18 + (businessCapacityIndex - 55) * 0.05), 70, 220);
+    const gdpPerPersonIndex = clamp(gdpIndex / Math.max(0.1, population / BASE_POPULATION), 60, 180);
     const taxRevenue = (workingAgePopulation * (assumptions.workforceParticipation / 100) * assumptions.averageTaxPerWorker) / 1_000_000_000;
     const serviceCost = (population * assumptions.governmentSpendingPerPerson) / 1_000_000_000;
+    const commonwealthRevenueDollars = BASE_COMMONWEALTH_REVENUE_MILLIONS * 1_000_000 * (gdpIndex / 100) * (employmentRate / BASE_EMPLOYMENT_TO_POPULATION_RATIO);
+    const commonwealthSpendingDollars = BASE_COMMONWEALTH_EXPENSES_MILLIONS * 1_000_000 * (population / BASE_POPULATION) * (1 + Math.max(0, retireeShare - 0.17) * 0.75 + elapsed * 0.002);
+    const commonwealthBalanceDollars = commonwealthRevenueDollars - commonwealthSpendingDollars;
     const infrastructurePressure = clamp(30 + Math.max(0, annualPopulationChange) / 7_500 + assumptions.infrastructureCostPerAdditionalPerson / 850 - assumptions.housingBuildRate / 14_000, 5, 100);
     const healthAgedCarePressure = clamp(36 + retireeShare * 130 + assumptions.healthAgedCareWorkerDemand * elapsed * 0.9 - labourSupplyIndex * 0.22, 5, 100);
     const educationPressure = clamp(30 + childrenShare * 110 + studentShare * 90 + Math.max(0, annualPopulationChange) / 18_000, 5, 100);
@@ -208,6 +246,20 @@ export function runImmigrationScenario(
       capitalCityPressure,
       socialCohesionRisk,
       dependencyRatio,
+      gdpIndex,
+      gdpPerPersonIndex,
+      employedPeople,
+      unemployedPeople,
+      unemploymentRate,
+      rentalVacancyRate,
+      rentPressureIndex,
+      affordabilityIndex,
+      studentArrivals,
+      otherTemporaryArrivals,
+      permanentOrLongTermArrivals,
+      commonwealthRevenueDollars,
+      commonwealthSpendingDollars,
+      commonwealthBalanceDollars,
     };
 
     const tradeOffs = assessTradeOffs(metrics, previous, assumptions, scenario);

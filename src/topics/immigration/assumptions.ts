@@ -1,4 +1,30 @@
 import type { ConfidenceRating } from './entities';
+import { getBehaviouralAssumption } from '../../model/assumptions/behaviouralAssumptions';
+import { getBaselineVariable } from '../../model/data/baseline/variables';
+import { getPolicySetting } from '../../model/policies/policySettings';
+
+const immigrationBaselineValues = {
+  naturalIncrease: getBaselineVariable('baseline.demography.naturalIncrease').value,
+  fertilityRate: getBaselineVariable('baseline.demography.fertilityRate').value,
+  deathRate: getBaselineVariable('baseline.demography.deathRate').value,
+};
+
+const immigrationCurrentPolicyValues = {
+  netOverseasMigration: getPolicySetting('policy.immigration.currentPath.netOverseasMigration').value,
+  housingBuildRate: getPolicySetting('policy.immigration.currentPath.housingBuildRate').value,
+  regionalSettlementShare: getPolicySetting('policy.immigration.currentPath.regionalSettlementShare').value,
+};
+
+const immigrationAssumptionValues = {
+  migrantWorkingAgeShare: getBehaviouralAssumption('assumption.immigration.migrantWorkingAgeShare').centralValue,
+  workforceParticipation: getBehaviouralAssumption('assumption.immigration.workforceParticipation').centralValue,
+  productivityGrowth: getBehaviouralAssumption('assumption.immigration.productivityGrowth').centralValue,
+  averageTaxPerWorker: getBehaviouralAssumption('assumption.immigration.averageTaxPerWorker').centralValue,
+  governmentSpendingPerPerson: getBehaviouralAssumption('assumption.immigration.governmentSpendingPerPerson').centralValue,
+  infrastructureCostPerAdditionalPerson: getBehaviouralAssumption('assumption.immigration.infrastructureCostPerAdditionalPerson').centralValue,
+  socialCohesionSensitivity: getBehaviouralAssumption('assumption.immigration.socialCohesionSensitivity').centralValue,
+  environmentalPressurePerPerson: getBehaviouralAssumption('assumption.immigration.environmentalPressurePerPerson').centralValue,
+};
 
 export type AssumptionKind = 'people' | 'housing' | 'economy' | 'government' | 'environment' | 'regions' | 'cohesion';
 
@@ -36,22 +62,22 @@ export type ImmigrationAssumptionDefinition = {
 };
 
 export const DEFAULT_IMMIGRATION_ASSUMPTIONS: ImmigrationAssumptions = {
-  netOverseasMigration: 260_000,
-  naturalIncrease: 110_000,
-  fertilityRate: 1.65,
-  deathRate: 7.1,
-  migrantWorkingAgeShare: 78,
-  workforceParticipation: 67,
-  productivityGrowth: 1.2,
-  housingBuildRate: 180_000,
+  netOverseasMigration: immigrationCurrentPolicyValues.netOverseasMigration,
+  naturalIncrease: immigrationBaselineValues.naturalIncrease,
+  fertilityRate: immigrationBaselineValues.fertilityRate,
+  deathRate: immigrationBaselineValues.deathRate,
+  migrantWorkingAgeShare: immigrationAssumptionValues.migrantWorkingAgeShare,
+  workforceParticipation: immigrationAssumptionValues.workforceParticipation,
+  productivityGrowth: immigrationAssumptionValues.productivityGrowth,
+  housingBuildRate: immigrationCurrentPolicyValues.housingBuildRate,
   constructionLabourConstraint: 35,
   healthAgedCareWorkerDemand: 2.3,
-  averageTaxPerWorker: 28_000,
-  governmentSpendingPerPerson: 23_000,
-  infrastructureCostPerAdditionalPerson: 13_000,
-  regionalSettlementShare: 18,
-  socialCohesionSensitivity: 45,
-  environmentalPressurePerPerson: 1.0,
+  averageTaxPerWorker: immigrationAssumptionValues.averageTaxPerWorker,
+  governmentSpendingPerPerson: immigrationAssumptionValues.governmentSpendingPerPerson,
+  infrastructureCostPerAdditionalPerson: immigrationAssumptionValues.infrastructureCostPerAdditionalPerson,
+  regionalSettlementShare: immigrationCurrentPolicyValues.regionalSettlementShare,
+  socialCohesionSensitivity: immigrationAssumptionValues.socialCohesionSensitivity,
+  environmentalPressurePerPerson: immigrationAssumptionValues.environmentalPressurePerPerson,
 };
 
 export const IMMIGRATION_ASSUMPTION_DEFINITIONS: ImmigrationAssumptionDefinition[] = [
@@ -63,8 +89,8 @@ export const IMMIGRATION_ASSUMPTION_DEFINITIONS: ImmigrationAssumptionDefinition
     min: -50_000,
     max: 650_000,
     step: 10_000,
-    source: 'Placeholder baseline — replace with ABS / Home Affairs series later',
-    confidence: 'medium',
+    source: 'ABS National, state and territory population, year ending 31 December 2025; scenario projection path still requires review',
+    confidence: 'high',
     explanation: 'Higher net migration raises population, labour supply and aggregate demand quickly; housing and infrastructure effects arrive immediately while tax and ageing effects build over time.',
   },
   {
@@ -75,8 +101,8 @@ export const IMMIGRATION_ASSUMPTION_DEFINITIONS: ImmigrationAssumptionDefinition
     min: -20_000,
     max: 220_000,
     step: 5_000,
-    source: 'Placeholder demographic assumption',
-    confidence: 'low',
+    source: 'ABS National, state and territory population, year ending 31 December 2025',
+    confidence: 'high',
     explanation: 'Births minus deaths continue to change the population even if net overseas migration changes.',
   },
   {
@@ -87,7 +113,7 @@ export const IMMIGRATION_ASSUMPTION_DEFINITIONS: ImmigrationAssumptionDefinition
     min: 1.1,
     max: 2.2,
     step: 0.05,
-    source: 'Placeholder demographic assumption',
+    source: 'Placeholder demographic assumption retained pending ABS fertility-series review',
     confidence: 'low',
     explanation: 'Higher fertility affects children and future workers slowly, not the immediate workforce.',
   },
@@ -99,7 +125,7 @@ export const IMMIGRATION_ASSUMPTION_DEFINITIONS: ImmigrationAssumptionDefinition
     min: 4,
     max: 12,
     step: 0.1,
-    source: 'Placeholder demographic assumption',
+    source: 'Placeholder demographic assumption retained pending ABS mortality-series review',
     confidence: 'low',
     explanation: 'Mortality affects ageing, retirees and natural increase over time.',
   },
@@ -111,7 +137,7 @@ export const IMMIGRATION_ASSUMPTION_DEFINITIONS: ImmigrationAssumptionDefinition
     min: 45,
     max: 95,
     step: 1,
-    source: 'Placeholder age-profile assumption',
+    source: 'Model assumption retained pending ABS/Home Affairs age-profile segmentation',
     confidence: 'medium',
     explanation: 'A younger migrant profile lifts workers per retiree, tax capacity and service staffing more than an older profile.',
   },
@@ -123,7 +149,7 @@ export const IMMIGRATION_ASSUMPTION_DEFINITIONS: ImmigrationAssumptionDefinition
     min: 50,
     max: 82,
     step: 1,
-    source: 'Placeholder labour-market assumption',
+    source: 'Model assumption retained; ABS Labour Force May 2026 total labour context recorded separately',
     confidence: 'medium',
     explanation: 'Higher participation turns population into actual labour supply and tax revenue.',
   },
@@ -135,7 +161,7 @@ export const IMMIGRATION_ASSUMPTION_DEFINITIONS: ImmigrationAssumptionDefinition
     min: -0.5,
     max: 3,
     step: 0.1,
-    source: 'Placeholder productivity assumption',
+    source: 'Model assumption retained; ABS National Accounts GDP context recorded separately',
     confidence: 'low',
     explanation: 'Productivity determines whether a bigger economy means higher living standards, not just more people.',
   },
@@ -147,7 +173,7 @@ export const IMMIGRATION_ASSUMPTION_DEFINITIONS: ImmigrationAssumptionDefinition
     min: 60_000,
     max: 360_000,
     step: 5_000,
-    source: 'Placeholder construction capacity assumption',
+    source: 'ABS Building Activity, March quarter 2026 completions annualised; construction capacity remains uncertain',
     confidence: 'medium',
     explanation: 'More housing supply reduces demand pressure, but labour/material constraints can delay the benefit.',
   },

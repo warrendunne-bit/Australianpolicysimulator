@@ -6,6 +6,7 @@ import {
   runImmigrationScenario,
   type ImmigrationSimulationYear,
 } from '../../topics/immigration';
+import { getActiveBaselineVersion } from '../../model';
 
 const PROJECTION_YEARS = [IMMIGRATION_START_YEAR, IMMIGRATION_START_YEAR + 5, IMMIGRATION_START_YEAR + 10, IMMIGRATION_START_YEAR + 20];
 
@@ -46,6 +47,7 @@ export function BaselineHomePage({ mode = 'today', onSectionChange }: BaselineHo
   const risks = buildRisks(twentyYearResult);
   const opportunities = buildOpportunities(twentyYearResult);
   const outcomes = buildOutcomeViews(currentResult, selectedResult);
+  const baselineVersion = getActiveBaselineVersion();
 
   function toggleSecondary(objective: string) {
     setSecondaryObjectives((current) => {
@@ -73,6 +75,11 @@ export function BaselineHomePage({ mode = 'today', onSectionChange }: BaselineHo
             <span>Watch outcomes unfold</span>
             <span>Revise the policy</span>
           </div>
+        </div>
+        <div className="baseline-hero-card">
+          <span>Australian baseline v1.0</span>
+          <strong>{baselineVersion.reviewDate}</strong>
+          <small>{baselineVersion.status} · scenario model, not a forecast</small>
         </div>
         <div className="baseline-hero-card">
           <span>Projection year</span>
@@ -143,7 +150,7 @@ export function BaselineHomePage({ mode = 'today', onSectionChange }: BaselineHo
         <aside className="model-confidence-card">
           <h4>Assumptions and confidence</h4>
           <ul>
-            <li>Net overseas migration: {DEFAULT_IMMIGRATION_ASSUMPTIONS.netOverseasMigration.toLocaleString('en-AU')} people/year · confidence medium</li>
+            <li>Net overseas migration: {DEFAULT_IMMIGRATION_ASSUMPTIONS.netOverseasMigration.toLocaleString('en-AU')} people/year · confidence high for observed baseline, projection path still under review</li>
             <li>Housing build rate: {DEFAULT_IMMIGRATION_ASSUMPTIONS.housingBuildRate.toLocaleString('en-AU')} dwellings/year · confidence medium</li>
             <li>Productivity growth: {DEFAULT_IMMIGRATION_ASSUMPTIONS.productivityGrowth}%/year · confidence low</li>
             <li>Environmental pressure per person: index {DEFAULT_IMMIGRATION_ASSUMPTIONS.environmentalPressurePerPerson} · confidence low</li>

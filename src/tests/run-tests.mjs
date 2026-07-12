@@ -34,6 +34,7 @@ try {
   const model = await server.ssrLoadModule('/simulation/model.ts');
   const presets = await server.ssrLoadModule('/simulation/presets.ts');
   const immigration = await server.ssrLoadModule('/topics/immigration/index.ts');
+  const modelConfig = await server.ssrLoadModule('/model/index.ts');
 
   test('success score inverts environmental pressure and applies default weights', () => {
     const outcomes = {
@@ -418,6 +419,165 @@ try {
       high2036.mythTests.some((myth) => myth.claim === 'Immigration is either all good or all bad'),
       'myth tester should evaluate common claims from model outputs',
     );
+  });
+
+  test('phase 1B model configuration separates baseline assumptions policies and scenarios', () => {
+    const activeBaseline = modelConfig.getActiveBaselineVersion();
+    const population = modelConfig.getBaselineVariable('baseline.population.total');
+    const defaultPolicy = modelConfig.getPolicySetting('policy.general.default.immigrationRate');
+    const migrationResponse = modelConfig.getBehaviouralAssumption('assumption.general.peoplePerImmigrationPercent');
+    const currentScenario = modelConfig.getScenarioConfig('scenario.immigration.currentPath');
+
+    assert(activeBaseline.id === 'australian-baseline-v1.0', 'active baseline should have a version id');
+    assert(population.value === 27801023, 'baseline population should use reviewed ABS evidence');
+    assert(population.classification === 'observed-baseline-data', 'population should be classified as observed baseline data');
+    assert(defaultPolicy.classification === 'policy-setting', 'policy default should be stored separately from baseline facts');
+    assert(defaultPolicy.value === 2, 'general default immigration policy value should be migrated without changing it');
+    assert(migrationResponse.centralValue === 100000, 'behavioural migration conversion should be independently identifiable');
+    assert(currentScenario.baselineVersionId === activeBaseline.id, 'scenario should record the baseline version it uses');
+    assert(currentScenario.policySettingIds.includes('policy.immigration.currentPath.netOverseasMigration'), 'scenario should reference policy settings');
+  });
+
+  test('phase 1B validation flags invalid and stale baseline data', () => {
+    const result = modelConfig.validateModelConfiguration({
+      baselineVariables: [
+        {
+          ...modelConfig.getBaselineVariable('baseline.population.total'),
+          id: 'test.invalid.range',
+          unit: '',
+          sourceLocation: '',
+          lowEstimate: 5,
+          centralEstimate: 4,
+          highEstimate: 3,
+        },
+      ],
+      behaviouralAssumptions: modelConfig.BEHAVIOURAL_ASSUMPTIONS,
+      policySettings: modelConfig.POLICY_SETTINGS,
+      scenarios: modelConfig.SCENARIO_CONFIGS,
+      baselineVersions: modelConfig.BASELINE_VERSIONS,
+    });
+
+    assert(!result.valid, 'invalid baseline data should fail validation');
+    assert(result.issues.some((issue) => issue.rule === 'missing-unit'), 'validation should flag missing units');
+    assert(result.issues.some((issue) => issue.rule === 'missing-source'), 'validation should flag missing sources');
+    assert(result.issues.some((issue) => issue.rule === 'invalid-range'), 'validation should flag invalid ranges');
+  });
+
+  test('phase 1B policy overrides do not mutate stored baseline values', () => {
+    const before = modelConfig.getBaselineVariable('baseline.population.total');
+    const overridden = modelConfig.createScenarioPolicySnapshot('scenario.immigration.currentPath', {
+      'policy.immigration.currentPath.netOverseasMigration': 100000,
+    });
+    const after = modelConfig.getBaselineVariable('baseline.population.total');
+
+    assert(before.value === after.value, 'baseline value should not change when policy settings are overridden');
+    assert(overridden.baselineVersionId === 'australian-baseline-v1.0', 'policy snapshot should retain baseline version');
+    assert(
+      overridden.policyValues['policy.immigration.currentPath.netOverseasMigration'] === 100000,
+      'policy override should appear only in scenario policy values',
+    );
+  });
+
+  test('phase 1B provenance rows expose source confidence range and affected outputs', () => {
+    const rows = modelConfig.buildDataProvenanceRows();
+    const population = rows.find((row) => row.id === 'baseline.population.total');
+    const nom = rows.find((row) => row.id === 'policy.immigration.currentPath.netOverseasMigration');
+
+    assert(rows.length >= 20, 'provenance should expose a useful inspection table');
+    assert(population, 'population should be visible in provenance rows');
+    assert(population.source.includes('Australian Bureau of Statistics'), 'reviewed ABS source should be visible');
+    assert(population.range.includes('27,801,023'), 'provenance row should display baseline range');
+    assert(population.affectedOutputs.includes('population'), 'provenance should list affected outputs');
+    assert(nom.classification === 'policy-setting', 'current-path NOM should remain a policy setting, not observed fact');
+  });
+
+  test('phase 1C evidence baseline exposes reviewed Australian baseline v1.0 metadata', () => {
+    const version = modelConfig.getActiveBaselineVersion();
+    const population = modelConfig.getBaselineVariable('baseline.population.total');
+    const nom = modelConfig.getBaselineVariable('baseline.migration.netOverseasMigration');
+    const unemployment = modelConfig.getBaselineVariable('baseline.labour.unemploymentRate');
+    const housingCompletions = modelConfig.getBaselineVariable('baseline.housing.completionsAnnualised');
+
+    assert(version.id === 'australian-baseline-v1.0', 'Phase 1C should expose Australian baseline v1.0');
+    assert(version.reviewDate === '2026-07-12', 'baseline review date should be explicit');
+    assert(population.value === 27801023, 'population should use verified ABS Dec 2025 ERP');
+    assert(population.sourceOrganisation === 'Australian Bureau of Statistics', 'population source should be ABS');
+    assert(population.referencePeriod.includes('31 December 2025'), 'population reference period should be visible');
+    assert(nom.value === 301000, 'baseline NOM should use ABS annual growth component for year ending Dec 2025');
+    assert(unemployment.value === 4.4, 'unemployment should use ABS Labour Force May 2026');
+    assert(housingCompletions.value === 175264, 'housing completions should annualise ABS Mar quarter 2026 completions');
+  });
+
+  test('phase 1C current-policy baseline distinguishes facts forecasts and dynamic settings', () => {
+    const definition = modelConfig.CURRENT_POLICY_BASELINE_DEFINITION;
+    assert(definition.baselineVersionId === 'australian-baseline-v1.0', 'current-policy definition should use v1.0');
+    assert(definition.rules.some((rule) => rule.category === 'observed-data'), 'current policy should separate observed data');
+    assert(definition.rules.some((rule) => rule.category === 'government-forecast'), 'current policy should separate forecasts');
+    assert(definition.rules.some((rule) => rule.trajectory === 'dynamic'), 'current policy should document dynamic variables');
+    assert(definition.rules.some((rule) => rule.trajectory === 'return-to-long-run'), 'temporary conditions should not be frozen forever');
+  });
+
+  test('phase 1C back-test and sensitivity reports are reproducible and bounded', () => {
+    const backTest = modelConfig.runBaselineBackTest();
+    const sensitivity = modelConfig.runMigrationSensitivity();
+
+    assert(backTest.baselineVersionId === 'australian-baseline-v1.0', 'back-test should record baseline version');
+    assert(backTest.results.length >= 6, 'back-test should compare several observed outcomes');
+    assert(backTest.results.some((result) => result.differenceReason.includes('missing variables')), 'back-test should explain gaps rather than force fit');
+    assert(sensitivity.baselineVersionId === 'australian-baseline-v1.0', 'sensitivity should record baseline version');
+    assert(sensitivity.cases.length === 3, 'sensitivity should test low central and high cases');
+    assert(sensitivity.cases[0].netOverseasMigration < sensitivity.cases[1].netOverseasMigration, 'low case should be below central');
+    assert(sensitivity.cases[2].netOverseasMigration > sensitivity.cases[1].netOverseasMigration, 'high case should be above central');
+    assert(Number.isFinite(sensitivity.cases[1].housingStressIndex), 'sensitivity outputs should be numeric');
+  });
+
+  test('phase 1C commentary traceability flags uncertainty without political conclusions', () => {
+    const trace = modelConfig.buildCommentaryTrace({
+      outcome: 'housingStressIndex',
+      value: 62,
+      drivers: ['net overseas migration', 'housing completions'],
+      confidence: 'moderate',
+    });
+
+    assert(trace.calculatedOutcome === 'housingStressIndex', 'trace should identify calculated outcome');
+    assert(trace.commentary.includes('modelled scenario'), 'commentary should avoid forecast language');
+    assert(trace.evidenceChain.length >= 3, 'commentary should include source-to-result chain');
+    assert(!trace.commentary.toLowerCase().includes('should'), 'commentary should avoid moral/political prescriptions');
+  });
+
+  test('phase 1D immigration model exposes direct GDP labour housing fiscal and migration-segment pathways', () => {
+    const run = immigration.runImmigrationScenario(immigration.getImmigrationScenario('current-path'));
+    const firstYear = run.timeline[0];
+    const year2036 = run.timeline.find((year) => year.year === 2036);
+
+    assert(Number.isFinite(firstYear.gdpIndex), 'GDP index should be a direct numeric output');
+    assert(Number.isFinite(firstYear.gdpPerPersonIndex), 'GDP per person index should be a direct numeric output');
+    assert(firstYear.employedPeople > 0, 'employment stock should be directly calculated');
+    assert(firstYear.unemployedPeople > 0, 'unemployment stock should be directly calculated');
+    assert(firstYear.unemploymentRate >= 0, 'unemployment rate should be directly calculated');
+    assert(firstYear.rentalVacancyRate > 0, 'rental vacancy should be a direct housing input/output');
+    assert(firstYear.rentPressureIndex >= 0, 'rent pressure should be direct');
+    assert(firstYear.affordabilityIndex >= 0, 'affordability should be direct');
+    assert(firstYear.studentArrivals >= 0, 'student arrivals should be segmented');
+    assert(firstYear.otherTemporaryArrivals >= 0, 'other temporary arrivals should be segmented');
+    assert(firstYear.permanentOrLongTermArrivals >= 0, 'permanent/long-term arrivals should be segmented');
+    assert(firstYear.commonwealthRevenueDollars > 0, 'Commonwealth revenue dollars should be traced');
+    assert(firstYear.commonwealthSpendingDollars > 0, 'Commonwealth spending dollars should be traced');
+    assert(Number.isFinite(firstYear.commonwealthBalanceDollars), 'Commonwealth balance dollars should be traced');
+    assert(year2036.gdpIndex !== firstYear.gdpIndex, 'GDP pathway should evolve over time');
+  });
+
+  test('phase 1D expanded sensitivity covers housing fiscal and social cohesion assumptions', () => {
+    const expanded = modelConfig.runExpandedSensitivity();
+    const ids = expanded.dimensions.map((dimension) => dimension.id);
+
+    assert(ids.includes('netOverseasMigration'), 'expanded sensitivity should retain NOM');
+    assert(ids.includes('housingBuildRate'), 'expanded sensitivity should include housing supply');
+    assert(ids.includes('averageTaxPerWorker'), 'expanded sensitivity should include tax contribution');
+    assert(ids.includes('governmentSpendingPerPerson'), 'expanded sensitivity should include service cost');
+    assert(ids.includes('socialCohesionSensitivity'), 'expanded sensitivity should include social cohesion');
+    assert(expanded.dimensions.every((dimension) => dimension.low < dimension.high), 'each sensitivity range should be ordered');
+    assert(expanded.dimensions.every((dimension) => dimension.conclusionRisk.includes('scenario') || dimension.conclusionRisk.includes('outcomes')), 'each sensitivity dimension should explain conclusion risk');
   });
 
   let failures = 0;
