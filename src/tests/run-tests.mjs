@@ -35,6 +35,39 @@ try {
   const presets = await server.ssrLoadModule('/simulation/presets.ts');
   const immigration = await server.ssrLoadModule('/topics/immigration/index.ts');
   const modelConfig = await server.ssrLoadModule('/model/index.ts');
+  const { evidenceProposals } = await server.ssrLoadModule('/policyIssues/housingPilot/evidence.ts');
+  const { economicExercises } = await server.ssrLoadModule('/policyIssues/programmes/economic.ts');
+  const { householdExercises } = await server.ssrLoadModule('/policyIssues/programmes/households.ts');
+  const { communityExercises } = await server.ssrLoadModule('/policyIssues/programmes/community.ts');
+  const { initialProgrammeInputs, compareProgramme } = await server.ssrLoadModule('/policyIssues/programmes/comparison.ts');
+  const { proposalHref } = await server.ssrLoadModule('/policyIssues/programmes/routes.ts');
+  const { isIssueStudy } = await server.ssrLoadModule('/policyIssues/issueRouting.ts');
+  const { runHousingPilot } = await server.ssrLoadModule('/policyIssues/housingPilot/model.ts');
+
+  test('all ten issues resolve to the housing pilot or a finite programme comparison', () => {
+    const exercises = new Map([...economicExercises, ...householdExercises, ...communityExercises].map((item) => [item.id, item]));
+    assert(evidenceProposals.length === 10 && exercises.size === 9, 'expected ten issues and nine programme comparisons');
+    for (const proposal of evidenceProposals) {
+      const route = proposalHref(proposal.id);
+      assert(isIssueStudy(route.slice(1)), `unrecognised route ${route}`);
+      if (route === '#housing-pilot') continue;
+      const exercise = exercises.get(proposal.id);
+      assert(exercise, `missing exercise for ${proposal.id}`);
+      const outcomes = compareProgramme(exercise, initialProgrammeInputs(exercise.inputs));
+      assert(outcomes.length && outcomes.every((item) => Number.isFinite(item.value) && Number.isFinite(item.reference)), `invalid default results for ${proposal.id}`);
+    }
+    assert(!isIssueStudy('immigration'), 'immigration is a separate simulator route');
+  });
+
+  test('the housing pilot shares downturn conditions across three packages', () => {
+    const { scenarios } = runHousingPilot();
+    assert(scenarios.length === 3, 'expected three housing packages');
+    for (const scenario of scenarios) {
+      const year = scenario.years.find((item) => item.year === 2029);
+      assert(year?.downturn.constructionCapacityFactor === 0.65, 'expected central downturn across all packages');
+      assert(year.cohorts.length === 9 && Number.isFinite(year.publicCosts.total), 'missing tenure and income outcomes or public costs');
+    }
+  });
 
   test('success score inverts environmental pressure and applies default weights', () => {
     const outcomes = {

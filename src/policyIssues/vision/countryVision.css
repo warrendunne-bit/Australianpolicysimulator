@@ -1,0 +1,105 @@
+.policy-issues-content .country-vision {
+  scroll-margin-top: 85px;
+}
+
+.policy-issues-content .country-vision .vision-primary {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.policy-issues-content .country-vision .vision-primary legend {
+  margin-bottom: 8px;
+  padding: 0;
+  color: #345862;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.policy-issues-content .country-vision .vision-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.policy-issues-content .country-vision .vision-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 72px;
+  padding: 12px;
+  border: 1px solid #dce6e0;
+  border-radius: 7px;
+  background: #fcfdfc;
+  cursor: pointer;
+}
+
+.policy-issues-content .country-vision .vision-option:has(input:checked) {
+  border-color: #477f79;
+  background: #edf6f1;
+}
+
+.policy-issues-content .country-vision .vision-option:has(input:not(:checked)):hover {
+  border-color: #93b5ad;
+}
+
+.policy-issues-content .country-vision .vision-option input {
+  flex-shrink: 0;
+  margin: 4px 0 0;
+  accent-color: #1b6869;
+}
+
+.policy-issues-content .country-vision .vision-option-title {
+  color: #173f51;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.policy-issues-content .country-vision .vision-option-description {
+  display: block;
+  margin-top: 3px;
+  color: #526970;
+  font-size: 0.8rem;
+}
+
+.policy-issues-content .country-vision .vision-secondary {
+  width: fit-content;
+  max-width: 100%;
+  margin: 18px 0;
+}
+
+.policy-issues-content .country-vision .vision-secondary select:disabled {
+  color: #607179;
+  background: #f4f7f5;
+  cursor: default;
+}
+
+.policy-issues-content .country-vision .vision-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.policy-issues-content .country-vision .vision-actions button:disabled {
+  border-color: #dce6e0;
+  color: #617277;
+  background: #f4f7f5;
+  cursor: default;
+}
+
+.policy-issues-content .country-vision .vision-status {
+  min-height: 1.4em;
+  margin-top: 8px;
+  color: #315d52;
+  font-size: 0.83rem;
+}
+
+@media (max-width: 780px) {
+  .policy-issues-content .country-vision .vision-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+  .policy-issues-content .country-vision .vision-options { grid-template-columns: minmax(0, 1fr); }
+  .policy-issues-content .country-vision .vision-option { min-height: 60px; }
+}

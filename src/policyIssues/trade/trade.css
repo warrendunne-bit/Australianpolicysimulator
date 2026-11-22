@@ -1,0 +1,32 @@
+.policy-issues-content .trade-exposure { scroll-margin-top: 85px; }
+.policy-issues-content .trade-exposure .section-heading p { max-width: 72ch; }
+.policy-issues-content .trade-scenario { padding: 16px; border: 1px solid #dce6e0; border-radius: 7px; background: #f7faf8; }
+.policy-issues-content .trade-controls { display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr); align-items: end; gap: 14px 24px; }
+.policy-issues-content .trade-controls .year-select { margin: 0; }
+.policy-issues-content .trade-controls input[type="range"] { margin: 3px 0 0; }
+.policy-issues-content .trade-case-note { margin-top: 12px; color: #526970; font-size: 0.81rem; }
+.policy-issues-content .trade-results { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.policy-issues-content .trade-results > div { padding: 14px; border: 1px solid #dde9e3; border-radius: 7px; background: #f7faf8; }
+.policy-issues-content .trade-results dt { color: #526970; font-size: 0.76rem; }
+.policy-issues-content .trade-results dd { margin: 4px 0 0; color: #173f51; font-size: clamp(1rem, 2.6vw, 1.55rem); font-weight: 750; font-variant-numeric: tabular-nums; }
+.policy-issues-content .trade-results .trade-percent { color: #526970; font-size: 0.73rem; font-weight: 500; }
+.policy-issues-content .trade-tables { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 12px; }
+.policy-issues-content .trade-table table { white-space: normal; }
+.policy-issues-content .trade-table caption { padding: 10px 12px; font-weight: 750; text-align: left; color: #173f51; font-size: 0.84rem; }
+.policy-issues-content .trade-table td { white-space: nowrap; }
+.policy-issues-content .trade-table-total { background: #edf5f1; font-weight: 700; }
+.policy-issues-content .trade-source { max-width: 88ch; }
+.policy-issues-content .trade-source-link { margin-top: 8px; }
+.policy-issues-content .trade-source-link a { color: #155f70; font-size: 0.8rem; font-weight: 650; text-underline-offset: 3px; }
+
+@media (max-width: 640px) {
+  .policy-issues-content .trade-controls, .policy-issues-content .trade-tables { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .policy-issues-content .trade-scenario { padding: 12px; }
+  .policy-issues-content .trade-results { gap: 6px; }
+  .policy-issues-content .trade-results > div { padding: 8px; }
+  .policy-issues-content .trade-results dt, .policy-issues-content .trade-results .trade-percent { font-size: 0.67rem; }
+  .policy-issues-content .trade-table td, .policy-issues-content .trade-table th { padding-inline: 8px; }
+}

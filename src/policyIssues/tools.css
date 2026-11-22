@@ -1,0 +1,147 @@
+/* Light study cards inside the simulator’s existing dark application shell. */
+.policy-issues-content { max-width: 1440px; margin: 16px auto 0; color: #182c38; line-height: 1.5; }
+.policy-issues-content :is(button, input, select) { font: inherit; }
+.policy-issues-content :is(button, select, summary) { cursor: pointer; }
+.policy-issues-content :is(h2, h3, p) { margin-top: 0; }
+.policy-issues-content h2 { margin-bottom: 8px; font-size: 1.25rem; line-height: 1.3; letter-spacing: -0.015em; }
+.policy-issues-content h3 { margin-bottom: 8px; font-size: 1rem; }
+.policy-issues-content p { margin-bottom: 0; }
+.policy-issues-content ul { margin: 0; padding-left: 20px; }
+.policy-issues-content a { color: #155f70; text-underline-offset: 3px; }
+.policy-issues-content input[type="range"] { accent-color: #1b6869; }
+.policy-issues-content summary { color: #244f59; font-size: 0.85rem; font-weight: 650; }
+.policy-issues-content button:focus-visible, .policy-issues-content input:focus-visible, .policy-issues-content select:focus-visible, .policy-issues-content summary:focus-visible, .policy-issues-content a:focus-visible, .policy-issues-content .table-wrap:focus-visible {
+  outline: 3px solid #ba591c;
+  outline-offset: 4px;
+}
+
+.policy-issues-content .panel { min-width: 0; padding: 24px; background: #fff; border: 1px solid #dce4e0; border-radius: 10px; box-shadow: 0 3px 12px rgb(18 37 45 / 3%); }
+.policy-issues-content .section-heading { margin-bottom: 22px; }
+.policy-issues-content .section-heading p:not(.section-kicker) { color: #5b6b73; font-size: 0.86rem; line-height: 1.55; }
+.policy-issues-content .control-row { min-width: 0; }
+.policy-issues-content .control-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.policy-issues-content .control-heading label { font-size: 0.84rem; font-weight: 650; }
+.policy-issues-content .control-heading output { flex-shrink: 0; color: #175f60; background: #edf5f2; border-radius: 4px; padding: 1px 6px; font-size: 0.81rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.policy-issues-content .control-row input[type="range"] { display: block; width: 100%; min-height: 26px; margin: 7px 0 2px; cursor: pointer; }
+.policy-issues-content .primary-button, .policy-issues-content .secondary-button { min-height: 44px; padding: 10px 16px; border: 1px solid #1b6869; border-radius: 6px; font-size: 0.85rem; font-weight: 700; }
+.policy-issues-content .primary-button { color: #fff; background: #1b6869; }
+.policy-issues-content .primary-button:hover { background: #134f50; }
+.policy-issues-content .secondary-button { color: #28545b; background: #fff; border-color: #cbd9d5; }
+.policy-issues-content .secondary-button:hover { background: #eef5f2; }
+.policy-issues-content .error-message { padding: 14px 18px; background: #fff0ed; color: #8b3328; border: 1px solid #e8c4bb; border-radius: 8px; }
+.policy-issues-content .year-select { display: grid; gap: 5px; flex-shrink: 0; }
+.policy-issues-content .year-select label { color: #53676f; font-size: 0.75rem; font-weight: 650; }
+.policy-issues-content .year-select select { padding: 8px 28px 8px 10px; min-height: 40px; border-radius: 5px; border: 1px solid #becfcb; background: #fff; color: #173c4e; font-size: 0.86rem; }
+.policy-issues-content .table-wrap { width: 100%; overflow-x: auto; border: 1px solid #dde6e1; border-radius: 6px; }
+.policy-issues-content .table-note { margin-top: 10px; color: #62737a; font-size: 0.75rem; }
+.policy-issues-content .evidence-badge { display: inline-block; width: fit-content; border: 1px solid #c8ded4; border-radius: 4px; padding: 3px 7px; color: #275e48; background: #edf6ef; font-size: 0.68rem; font-weight: 700; line-height: 1.4; white-space: nowrap; }
+.policy-issues-content .evidence-badge.projection { color: #5b427b; background: #f3eff8; border-color: #dbcee9; }
+.policy-issues-content .evidence-badge.derived { color: #275f77; background: #edf4f8; border-color: #c9dce6; }
+.policy-issues-content .evidence-badge.illustrative { color: #79551f; background: #fff5df; border-color: #ead6af; }
+.policy-issues-content .housing-pilot { display: grid; min-width: 0; gap: 18px; }
+.policy-issues-content .pilot-intro-heading, .policy-issues-content .pilot-result-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px 24px; }
+.policy-issues-content .pilot-intro h2 { color: #173f51; font-size: clamp(1.5rem, 3vw, 2.15rem); }
+.policy-issues-content .pilot-intro-heading p, .policy-issues-content .pilot-result-heading p, .policy-issues-content .pilot-scenario p { color: #526970; font-size: 0.84rem; max-width: 68ch; }
+.policy-issues-content .housing-pilot .year-select { margin: 0; min-width: 0; }
+.policy-issues-content .housing-pilot .year-select select { max-width: 100%; }
+.policy-issues-content .pilot-settings { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 18px; margin-top: 17px; }
+.policy-issues-content .pilot-result-settings { display: grid; grid-template-columns: repeat(2, minmax(0, auto)); gap: 12px; }
+.policy-issues-content .pilot-priority { margin-top: 6px; }
+.policy-issues-content .pilot-priority a { color: #155f70; text-underline-offset: 3px; }
+.policy-issues-content .pilot-shock { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 20px 0 0; padding: 14px 16px; gap: 12px 20px; border: 1px solid #e7d7b5; border-radius: 7px; background: #fff7e8; }
+.policy-issues-content .pilot-shock dt { color: #6e522d; font-size: 0.72rem; }
+.policy-issues-content .pilot-shock dd { margin: 3px 0 0; color: #5a411e; font-size: 0.89rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.policy-issues-content .pilot-scenarios { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.policy-issues-content .pilot-scenario { display: flex; flex-direction: column; border-top: 4px solid #667f89; }
+.policy-issues-content .pilot-scenario--faster-supply { border-top-color: #2e7e80; }
+.policy-issues-content .pilot-scenario--supply-rental-support { border-top-color: #8c6652; }
+.policy-issues-content .pilot-scenario h3, .policy-issues-content .pilot-result-heading h3 { color: #173f51; font-size: 1.08rem; }
+.policy-issues-content .pilot-scenario dl { display: grid; gap: 8px; margin: auto 0 0; padding-top: 16px; }
+.policy-issues-content .pilot-scenario dl > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-top: 1px solid #e6ece8; padding-top: 8px; }
+.policy-issues-content .pilot-scenario dt { color: #526970; font-size: 0.75rem; }
+.policy-issues-content .pilot-scenario dd { margin: 0; color: #163f52; font-size: 0.86rem; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.policy-issues-content .pilot-scenario dd small { display: block; color: #4c6972; font-size: 0.7rem; font-weight: 550; white-space: normal; }
+.policy-issues-content .pilot-result-heading { margin-bottom: 14px; }
+.policy-issues-content .pilot-table table { font-size: 0.82rem; }
+.policy-issues-content .pilot-table caption { padding: 9px 12px; text-align: left; color: #536871; font-weight: 650; }
+.policy-issues-content .pilot-table thead th { font-size: 0.74rem; }
+.policy-issues-content .pilot-table td, .policy-issues-content .pilot-table th { min-width: 100px; }
+.policy-issues-content .pilot-table tbody tr:nth-child(even) { background: #f8faf9; }
+.policy-issues-content .pilot-table .pilot-total { font-weight: 750; background: #edf5f1; }
+.policy-issues-content .pilot-difference { display: block; color: #4c6972; font-size: 0.69rem; }
+.policy-issues-content .pilot-tenure { display: block; color: #4c6972; font-size: 0.75rem; font-weight: 500; }
+.policy-issues-content .pilot-method-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 24px; margin: 16px 0; }
+.policy-issues-content .pilot-method-list dt { margin-bottom: 3px; color: #244f59; font-size: 0.84rem; font-weight: 700; }
+.policy-issues-content .pilot-method-list dd { margin: 0; color: #526970; font-size: 0.81rem; }
+.policy-issues-content .pilot-method a, .policy-issues-content .evidence-library a { color: #155f70; font-size: 0.82rem; font-weight: 650; text-underline-offset: 3px; }
+.policy-issues-content .evidence-library { min-width: 0; }
+.policy-issues-content .evidence-header { margin-bottom: 18px; }
+.policy-issues-content .evidence-header > p { max-width: 72ch; color: #526970; font-size: 0.86rem; }
+.policy-issues-content .evidence-header .evidence-vision-note { margin-top: 8px; }
+.policy-issues-content .evidence-list { display: grid; gap: 9px; list-style: none; padding: 0; }
+.policy-issues-content .evidence-entry > details { border: 1px solid #dce6e0; border-radius: 7px; background: #fcfdfc; }
+.policy-issues-content .evidence-entry summary { min-height: 44px; padding: 12px 15px; }
+.policy-issues-content .evidence-entry details[open] summary { border-bottom: 1px solid #e0e9e4; background: #f3f8f5; border-radius: 7px 7px 0 0; }
+.policy-issues-content .evidence-card-title { color: #173f51; font-weight: 700; }
+.policy-issues-content .evidence-badges { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 5px 7px; margin: 4px 0 0 10px; }
+.policy-issues-content .evidence-library .evidence-judgement { color: #335568; border-color: #d6e2ea; background: #edf4f8; white-space: normal; }
+.policy-issues-content .evidence-library .evidence-stage { white-space: normal; }
+.policy-issues-content .evidence-body { padding: 15px 18px 17px; color: #425f6b; font-size: 0.84rem; }
+.policy-issues-content .evidence-body p { max-width: 86ch; }
+.policy-issues-content .evidence-body p + p { margin-top: 8px; }
+.policy-issues-content .evidence-outcomes, .policy-issues-content .evidence-sources { margin-top: 12px; }
+.policy-issues-content .evidence-outcomes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; margin-bottom: 12px; }
+.policy-issues-content .evidence-outcomes dt { color: #244f59; font-weight: 700; }
+.policy-issues-content .evidence-outcomes dd { margin: 2px 0 0; }
+.policy-issues-content .evidence-sources { display: grid; gap: 8px; }
+.policy-issues-content .evidence-source-note { color: #526970; font-size: 0.79rem; }
+.policy-issues-content .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.policy-issues-content table { width: 100%; border-collapse: collapse; font-size: 0.75rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.policy-issues-content th, .policy-issues-content td { padding: 11px 12px; text-align: right; border-bottom: 1px solid #e6ece8; }
+.policy-issues-content thead th { color: #536871; background: #f0f5f2; font-size: 0.68rem; font-weight: 700; }
+.policy-issues-content th:first-child { text-align: left; }
+.policy-issues-content tbody th { font-weight: 600; }
+.policy-issues-content tbody tr:last-child > * { border-bottom: 0; }
+
+.policy-issues-content .programme-intro h2 { font-size: clamp(1.5rem, 3vw, 2.15rem); }
+.policy-issues-content .programme-catalogue, .policy-issues-content .evidence-list { padding-left: 0; }
+.policy-issues-content .trade-controls input[type="range"] { margin: 3px 0 0; }
+.policy-issues-content > [id], .policy-issues-content .evidence-entry details { scroll-margin-top: 85px; }
+
+@media (max-width: 1120px) {
+  .policy-issues-content .panel { padding: 20px; }
+  .policy-issues-content .year-select { margin-bottom: 16px; }
+}
+
+@media (max-width: 780px) {
+  .policy-issues-content .pilot-scenarios { grid-template-columns: 1fr; gap: 12px; }
+  .policy-issues-content .pilot-intro-heading, .policy-issues-content .pilot-result-heading { flex-wrap: wrap; }
+  .policy-issues-content .pilot-settings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .policy-issues-content .pilot-scenario dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .policy-issues-content .pilot-scenario dl > div { display: block; }
+  .policy-issues-content .pilot-scenario dd { margin-top: 4px; }
+  .policy-issues-content .pilot-table table { table-layout: fixed; white-space: normal; }
+  .policy-issues-content .pilot-table thead th:first-child { width: 28%; }
+  .policy-issues-content .pilot-cost-table thead th:first-child { width: 36%; }
+  .policy-issues-content .pilot-table td, .policy-issues-content .pilot-table th { min-width: 0; padding-inline: 8px; }
+  .policy-issues-content .pilot-table td { white-space: nowrap; }
+  .policy-issues-content .pilot-table tbody th { overflow-wrap: anywhere; }
+}
+
+@media (max-width: 480px) {
+  .policy-issues-content > [id], .policy-issues-content .evidence-entry details { scroll-margin-top: 132px; }
+  .policy-issues-content .panel { padding: 18px; }
+  .policy-issues-content .year-select { max-width: 170px; }
+  .policy-issues-content .pilot-settings, .policy-issues-content .pilot-result-settings { grid-template-columns: minmax(0, 1fr); }
+  .policy-issues-content .pilot-shock { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .policy-issues-content .pilot-shock > div:first-child { grid-column: 1 / -1; }
+  .policy-issues-content .pilot-scenario dl, .policy-issues-content .pilot-method-list { grid-template-columns: 1fr; }
+  .policy-issues-content .pilot-scenario dl > div { display: flex; }
+  .policy-issues-content .pilot-scenario dd { margin-top: 0; }
+  .policy-issues-content .pilot-table table, .policy-issues-content .pilot-table thead th { font-size: 0.69rem; }
+  .policy-issues-content .pilot-table td, .policy-issues-content .pilot-table th { padding-inline: 4px; }
+  .policy-issues-content .pilot-table caption { padding-inline: 6px; }
+  .policy-issues-content .pilot-difference, .policy-issues-content .pilot-tenure { font-size: 0.63rem; }
+  .policy-issues-content .evidence-badges { display: flex; margin-left: 0; }
+  .policy-issues-content .evidence-outcomes { grid-template-columns: 1fr; }
+}

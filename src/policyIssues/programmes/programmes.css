@@ -1,0 +1,59 @@
+.programmes { display: grid; gap: 16px; min-width: 0; color: #173f51; color-scheme: light; }
+.programmes .panel { min-width: 0; padding: clamp(16px, 2.4vw, 24px); border: 1px solid #dce6e0; border-radius: 10px; background: #fff; }
+.programme-intro h2 { margin: 0 0 8px; color: #173f51; font-size: clamp(1.5rem, 3vw, 2.15rem); }
+.programmes .programme-catalogue-intro { padding-block: clamp(20px, 3.6vw, 36px); border-color: #a3c6bd; background: linear-gradient(110deg, #fff, #eaf5f0); }
+.programme-catalogue-intro h2 { font-size: clamp(1.85rem, 4vw, 3rem); letter-spacing: -0.035em; }
+.programme-intro p, .programme-card p, .programme-summary { color: #526970; font-size: 0.86rem; }
+.programme-intro p { max-width: 72ch; margin: 0; }
+.programmes a { color: #155f70; text-underline-offset: 3px; }
+.programme-intro a { display: inline-block; margin-top: 10px; font-size: 0.82rem; font-weight: 650; }
+.programme-intro .programme-return { margin: 0 0 8px; }
+.programme-catalogue { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none; }
+.programmes .programme-card { padding: 18px; border-top: 3px solid #75a69b; }
+.programme-card h3 { margin: 0 0 8px; font-size: 1rem; }
+.programme-card h3 a { color: #173f51; }
+.programme-card p { margin: 0; line-height: 1.45; }
+.programmes .programme-card:focus-within, .programmes .programme-card:hover { border-color: #397469; background: #f4faf7; }
+.programme-layout { display: grid; grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr); align-items: start; gap: 16px; }
+.programme-controls, .programme-results { min-width: 0; }
+.programme-controls h3, .programme-results h3 { margin: 0 0 8px; color: #173f51; }
+.programme-fields { display: grid; gap: 12px; min-inline-size: 0; margin: 16px 0 0; padding: 12px; border: 1px solid #dce6e0; border-radius: 7px; }
+.programme-fields legend { padding: 0 5px; color: #244f59; font-size: 0.78rem; font-weight: 700; }
+.programme-field label { display: block; color: #294c5d; font-size: 0.82rem; font-weight: 650; }
+.programme-value-field { display: flex; align-items: center; gap: 8px; margin: 5px 0 4px; color: #536871; font-size: 0.76rem; }
+.programme-value-field input { padding: 7px 8px; width: 9rem; min-height: 40px; min-width: 0; max-width: 65%; border: 1px solid #becfcb; border-radius: 5px; color: #173c4e; font-variant-numeric: tabular-nums; }
+.programme-field-note { margin: 0; color: #526970; font-size: 0.73rem; line-height: 1.45; }
+.programme-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 17px; }
+.programme-actions button { min-height: 42px; padding: 8px 12px; border: 1px solid #28665c; border-radius: 6px; font-size: 0.84rem; font-weight: 650; cursor: pointer; }
+.programme-actions .primary-button { color: #fff; background: #28665c; }
+.programme-actions .secondary-button { color: #234d47; background: #fff; }
+.programmes :is(a, input, button, summary, [tabindex="0"]):focus-visible { outline: 3px solid #a35314; outline-offset: 3px; }
+.programme-results { display: grid; gap: 12px; }
+.programme-summary { margin: 0; }
+.programme-pending { margin-top: 10px; padding: 8px 10px; background: #fff7e8; border: 1px solid #ead8b7; border-radius: 5px; color: #694b23; font-size: 0.77rem; }
+.programme-table { margin-top: 12px; overflow-x: auto; }
+.programme-table table { position: relative; width: 100%; border-collapse: collapse; font-size: 0.82rem; white-space: normal; font-variant-numeric: tabular-nums; }
+.programme-table :is(th, td) { padding: 8px; border-bottom: 1px solid #e3ebe7; text-align: right; }
+.programme-table th:first-child { text-align: left; }
+.programme-table thead th { color: #37565c; background: #eaf3ee; font-size: 0.74rem; }
+.programme-table tbody tr:nth-child(even) { background: #f8faf9; }
+.programme-table td { white-space: nowrap; }
+.programme-table th small { display: block; margin-top: 2px; color: #526970; font-size: 0.73rem; font-weight: 500; }
+.programme-method summary { font-weight: 650; cursor: pointer; }
+.programme-method ul { display: grid; gap: 7px; margin-top: 12px; color: #526970; font-size: 0.82rem; }
+.programmes .sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+@media (min-width: 781px) {
+  .programme-results { position: sticky; top: 16px; }
+}
+
+@media (max-width: 780px) {
+  .programme-catalogue { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .programme-layout { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .programme-catalogue { grid-template-columns: minmax(0, 1fr); }
+  .programme-table th, .programme-table td { padding-inline: 6px; }
+  .programme-table table, .programme-table thead th, .programme-table th small { font-size: 0.7rem; }
+}

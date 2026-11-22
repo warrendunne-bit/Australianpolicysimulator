@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import {
   BudgetPage,
   DashboardPage,
@@ -11,6 +11,7 @@ import {
 import { GameHeader } from './components/GameHeader';
 import { ImmigrationScenarioLab } from './components/immigration/ImmigrationScenarioLab';
 import { BaselineHomePage } from './components/pages/BaselineHomePage';
+import { isIssueStudy } from './policyIssues/issueRouting';
 import {
   compareToBaseline,
   buildTransparentCalculationNotes,
@@ -43,6 +44,8 @@ const COMMAND_SECTIONS = [
   'Settings',
 ];
 
+const IssueStudies = lazy(() => import('./policyIssues/IssueStudies'));
+
 const SECTION_ALIASES: Record<string, string> = {
   dashboard: 'Australia today',
   immigration: 'Policies',
@@ -61,14 +64,14 @@ const SECTION_ALIASES: Record<string, string> = {
 
 function normaliseSection(section: string) {
   const cleaned = section.trim().toLowerCase().replace(/\s+/g, '-');
+  if (isIssueStudy(cleaned)) return 'Problems to solve';
   const aliased = SECTION_ALIASES[cleaned];
   if (aliased) return aliased;
   return COMMAND_SECTIONS.find((item) => item.toLowerCase() === section.toLowerCase()) ?? 'Australia today';
 }
 
-function sectionFromHash() {
-  if (typeof window === 'undefined') return 'Australia today';
-  return normaliseSection(window.location.hash.replace(/^#/, '') || 'Australia today');
+function currentFragment() {
+  return typeof window === 'undefined' ? '' : window.location.hash.slice(1).toLowerCase();
 }
 
 function sectionHash(section: string) {
@@ -108,7 +111,8 @@ export default function App() {
   const [selectedYear, setSelectedYear] = useState(1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTurnReveal, setShowTurnReveal] = useState(false);
-  const [activeSection, setActiveSection] = useState(sectionFromHash);
+  const [fragment, setFragment] = useState(currentFragment);
+  const activeSection = normaliseSection(fragment || 'Australia today');
   const [successWeights, setSuccessWeights] = useState<SuccessWeights>(DEFAULT_SUCCESS_WEIGHTS);
 
   const policies = useMemo<PolicySettings>(
@@ -272,16 +276,16 @@ export default function App() {
   }
 
   function changeActiveSection(section: string) {
-    const nextSection = normaliseSection(section);
-    setActiveSection(nextSection);
-    if (typeof window !== 'undefined' && window.location.hash !== sectionHash(nextSection)) {
-      window.location.hash = sectionHash(nextSection);
+    const nextHash = sectionHash(normaliseSection(section));
+    setFragment(nextHash.slice(1));
+    if (typeof window !== 'undefined' && window.location.hash !== nextHash) {
+      window.location.hash = nextHash;
     }
   }
 
   useEffect(() => {
     function syncSectionFromHash() {
-      setActiveSection(sectionFromHash());
+      setFragment(currentFragment());
     }
 
     syncSectionFromHash();
@@ -317,6 +321,12 @@ export default function App() {
         onSectionChange={changeActiveSection}
       />
 
+      {activeSection === 'Australia today' || activeSection === 'Problems to solve' ? (
+        <Suspense fallback={<p role="status">Loading policy comparisons…</p>}>
+          <IssueStudies fragment={fragment} />
+        </Suspense>
+      ) : null}
+
       {activeSection === 'Australia today' ? (
         <BaselineHomePage mode="today" onSectionChange={changeActiveSection} />
       ) : null}
@@ -325,8 +335,11 @@ export default function App() {
         <BaselineHomePage mode="currentPath" onSectionChange={changeActiveSection} />
       ) : null}
 
-      {activeSection === 'Problems to solve' ? (
-        <BaselineHomePage mode="problems" onSectionChange={changeActiveSection} />
+      {activeSection === 'Problems to solve' && !isIssueStudy(fragment) ? (
+        <details className="immigration-objectives">
+          <summary>Explore objectives for the immigration lab</summary>
+          <BaselineHomePage mode="problems" onSectionChange={changeActiveSection} />
+        </details>
       ) : null}
 
       {activeSection === 'Dashboard' ? (

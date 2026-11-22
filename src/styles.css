@@ -3871,3 +3871,23 @@ summary:focus-visible {
     grid-template-columns: 1fr;
   }
 }
+.issue-study-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 1rem;
+  padding: 0.5rem 0;
+}
+
+.policy-issues-content .issue-study-nav a {
+  color: #d7efe7;
+  font-weight: 650;
+  text-underline-offset: 0.17em;
+}
+
+.immigration-objectives > summary {
+  margin: 0.75rem 0;
+  cursor: pointer;
+  color: #d7efe7;
+  font-weight: 650;
+}
+
