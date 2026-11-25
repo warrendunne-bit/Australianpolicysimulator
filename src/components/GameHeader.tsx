@@ -5,14 +5,15 @@ type GameHeaderProps = {
   maxYear: number;
   hasPendingChanges: boolean;
   activeSection: string;
+  showGeneralActions: boolean;
   onSectionChange: (section: string) => void;
   onEndYear: () => void;
 };
 
 const NAV_ITEMS = [
+  'Problems to solve',
   'Australia today',
   'Current path',
-  'Problems to solve',
   'Policies',
   'My scenarios',
   'How the model works',
@@ -23,6 +24,7 @@ export function GameHeader({
   maxYear,
   hasPendingChanges,
   activeSection,
+  showGeneralActions,
   onSectionChange,
   onEndYear,
 }: GameHeaderProps) {
@@ -30,7 +32,7 @@ export function GameHeader({
   const calendarYear = baselineVersion.referenceYear + selectedYear - 1;
 
   return (
-    <header className="game-header">
+    <header className={showGeneralActions ? 'game-header' : 'game-header game-header--navigation'}>
       <div className="game-brand">
         <div className="game-flag" aria-hidden="true">
           <span>🇦🇺</span>
@@ -38,7 +40,6 @@ export function GameHeader({
         </div>
         <div>
           <h1>Australia Policy Simulator</h1>
-          <p>Understand the path. Test choices. Watch outcomes.</p>
         </div>
       </div>
 
@@ -46,28 +47,31 @@ export function GameHeader({
         {NAV_ITEMS.map((item) => (
           <button
             className={activeSection === item ? 'is-active' : ''}
+            aria-current={activeSection === item ? 'page' : undefined}
             key={item}
             type="button"
             onClick={() => onSectionChange(item)}
           >
             <span aria-hidden="true">{navIcon(item)}</span>
-            {item}
+            {item === 'Policies' ? 'Immigration lab' : item}
           </button>
         ))}
       </nav>
 
-      <div className="game-turn-actions">
-        <div className="game-year-card">
-          <strong>Australian baseline v1.0 · {calendarYear}</strong>
-          <span>General model turn {selectedYear} of {maxYear}</span>
+      {showGeneralActions && (
+        <div className="game-turn-actions">
+          <div className="game-year-card">
+            <strong>Australian baseline v1.0 · {calendarYear}</strong>
+            <span>General model turn {selectedYear} of {maxYear}</span>
+          </div>
+          <button className="game-end-year-button" type="button" onClick={onEndYear}>
+            Apply policy <span aria-hidden="true">›</span>
+          </button>
+          <small className={hasPendingChanges ? 'is-pending' : ''}>
+            {hasPendingChanges ? 'Pending agenda' : 'Enacted results'}
+          </small>
         </div>
-        <button className="game-end-year-button" type="button" onClick={onEndYear}>
-          Apply policy <span aria-hidden="true">›</span>
-        </button>
-        <small className={hasPendingChanges ? 'is-pending' : ''}>
-          {hasPendingChanges ? 'Pending agenda' : 'Enacted results'}
-        </small>
-      </div>
+      )}
     </header>
   );
 }

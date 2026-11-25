@@ -36,13 +36,28 @@ try {
   const immigration = await server.ssrLoadModule('/topics/immigration/index.ts');
   const modelConfig = await server.ssrLoadModule('/model/index.ts');
   const { evidenceProposals } = await server.ssrLoadModule('/policyIssues/housingPilot/evidence.ts');
+  const { issueBriefs } = await server.ssrLoadModule('/policyIssues/issueBriefs.ts');
   const { economicExercises } = await server.ssrLoadModule('/policyIssues/programmes/economic.ts');
   const { householdExercises } = await server.ssrLoadModule('/policyIssues/programmes/households.ts');
+  const { comparePreventionFollowup } = await server.ssrLoadModule('/policyIssues/programmes/preventionFollowup.ts');
   const { communityExercises } = await server.ssrLoadModule('/policyIssues/programmes/community.ts');
   const { initialProgrammeInputs, compareProgramme } = await server.ssrLoadModule('/policyIssues/programmes/comparison.ts');
+  const { programmeGuides } = await server.ssrLoadModule('/policyIssues/programmes/guides.ts');
   const { proposalHref } = await server.ssrLoadModule('/policyIssues/programmes/routes.ts');
   const { isIssueStudy } = await server.ssrLoadModule('/policyIssues/issueRouting.ts');
   const { runHousingPilot } = await server.ssrLoadModule('/policyIssues/housingPilot/model.ts');
+
+  test('all ten issues have a brief and a sourced Australian indicator', () => {
+    assert(Object.keys(issueBriefs).length === evidenceProposals.length, 'issue briefs and evidence proposals must cover the same issues');
+    for (const { id } of evidenceProposals) {
+      const brief = issueBriefs[id];
+      assert(brief?.title && brief.question && brief.whyItMatters && brief.intervention && brief.progress, `incomplete issue brief for ${id}`);
+      assert(brief.indicators.length > 0, `missing Australian indicator for ${id}`);
+      for (const { observation, source, url } of brief.indicators) {
+        assert(observation.trim() && source.trim() && new URL(url).protocol === 'https:', `incomplete indicator source for ${id}`);
+      }
+    }
+  });
 
   test('all ten issues resolve to the housing pilot or a finite programme comparison', () => {
     const exercises = new Map([...economicExercises, ...householdExercises, ...communityExercises].map((item) => [item.id, item]));
@@ -55,8 +70,27 @@ try {
       assert(exercise, `missing exercise for ${proposal.id}`);
       const outcomes = compareProgramme(exercise, initialProgrammeInputs(exercise.inputs));
       assert(outcomes.length && outcomes.every((item) => Number.isFinite(item.value) && Number.isFinite(item.reference)), `invalid default results for ${proposal.id}`);
+
+      const referenceInputs = Object.fromEntries(exercise.inputs.map(({ id, reference, initial }) => [id, reference ?? initial]));
+      const unchanged = compareProgramme(exercise, referenceInputs);
+      assert(unchanged.every(({ value, reference }) => value === reference), `identical packages changed results for ${proposal.id}`);
     }
     assert(!isIssueStudy('immigration'), 'immigration is a separate simulator route');
+  });
+
+  test('each programme guide points to a policy setting and distinct outcome and cost rows', () => {
+    const exercises = [...economicExercises, ...householdExercises, ...communityExercises];
+    assert(Object.keys(programmeGuides).length === exercises.length, 'programme guides must cover exactly the programme comparisons');
+    for (const exercise of exercises) {
+      const guide = programmeGuides[exercise.id];
+      assert(guide, `missing guide for ${exercise.id}`);
+      const control = exercise.inputs.find(({ id }) => id === guide.controlId);
+      assert(control?.reference !== undefined, `suggested input must be a policy setting for ${exercise.id}`);
+      const outcomes = compareProgramme(exercise, initialProgrammeInputs(exercise.inputs));
+      assert(guide.outcomeId !== guide.costId, `primary result and cost must differ for ${exercise.id}`);
+      assert(outcomes.filter(({ id }) => id === guide.outcomeId).length === 1, `invalid primary result for ${exercise.id}`);
+      assert(outcomes.filter(({ id, unit }) => id === guide.costId && unit.startsWith('A$')).length === 1, `invalid cost result for ${exercise.id}`);
+    }
   });
 
   test('the housing pilot shares downturn conditions across three packages', () => {
@@ -66,6 +100,59 @@ try {
       const year = scenario.years.find((item) => item.year === 2029);
       assert(year?.downturn.constructionCapacityFactor === 0.65, 'expected central downturn across all packages');
       assert(year.cohorts.length === 9 && Number.isFinite(year.publicCosts.total), 'missing tenure and income outcomes or public costs');
+    }
+  });
+
+  test('preventive health follow-up counts only adults remaining at risk', () => {
+    const exercise = householdExercises.find(({ id }) => id === 'preventive-health');
+    const inputs = initialProgrammeInputs(exercise.inputs);
+    const { rows, cost } = comparePreventionFollowup(exercise, inputs, 20, 50);
+    const [zero, , central] = rows;
+    assertClose(central.casesTenYears.reference, 623.36, 1e-9, 'default reference count by year ten');
+    assertClose(central.casesTenYears.scenario, 602.56, 1e-9, 'default scenario count by year ten');
+    assert(zero.casesTenYears.reference === zero.casesTenYears.scenario, 'coverage should not affect diagnoses at zero effect');
+    assert(cost.scenario > cost.reference, 'serving more people should increase intake costs');
+    assert(rows.every(({ casesThreeYears, casesTenYears }) =>
+      casesTenYears.scenario >= casesThreeYears.scenario && casesTenYears.scenario <= inputs.eligibleAdults),
+    'cumulative diagnoses must stay within the cohort and include the first three years');
+
+    const noLaterCases = comparePreventionFollowup(exercise, inputs, 0, 50).rows[2];
+    assert(noLaterCases.casesTenYears.scenario === noLaterCases.casesThreeYears.scenario, 'zero later risk should add no new cases');
+    const fullLaterRisk = comparePreventionFollowup(exercise, inputs, 100, 0).rows[2];
+    assert(fullLaterRisk.casesTenYears.reference === inputs.eligibleAdults && fullLaterRisk.casesTenYears.scenario === inputs.eligibleAdults,
+      'every remaining adult develops diabetes at full later risk without a retained effect');
+  });
+
+  test('the housing pilot delivers targeted support before new homes and reconciles public costs', () => {
+    const { assumptions, scenarios } = runHousingPilot();
+    const [baseline, supply, supplyWithSupport] = scenarios;
+    const [firstSupportYear] = supplyWithSupport.years;
+    assert(firstSupportYear.rentSupportRecipients > 0, 'rental support should begin in the first year');
+    assert(supply.years[0].publicCosts.stateCapital > 0 && supply.years[0].publicCosts.localCapital > 0, 'capital costs should begin when homes are funded');
+
+    for (const scenario of [supply, supplyWithSupport]) {
+      const firstDeliveryIndex = scenario.years.findIndex(({ additionalDwellingsDelivered }) => additionalDwellingsDelivered > 0);
+      assert(firstDeliveryIndex === assumptions.deliveryLagYears, `first homes delivered outside the assumed lag for ${scenario.id}`);
+      assert(scenario.years[0].dwellings === baseline.years[0].dwellings, `first-year stock changed before new homes arrived for ${scenario.id}`);
+    }
+
+    for (const scenario of scenarios) {
+      let totalToDate = 0;
+      for (const year of scenario.years) {
+        const receivesSupport = scenario.id === 'supply-rental-support';
+        for (const cohort of year.cohorts) {
+          const eligible = receivesSupport && cohort.income === 'Lower' && cohort.tenure === 'Private renter';
+          assert(eligible ? cohort.annualRentalSupport > 0 : cohort.annualRentalSupport === 0, `incorrect support for ${cohort.id} in ${scenario.id}`);
+        }
+
+        const { commonwealthOperating, stateCapital, localCapital, total } = year.publicCosts;
+        assert(receivesSupport ? commonwealthOperating > 0 : commonwealthOperating === 0, `incorrect Commonwealth cost for ${scenario.id}`);
+        assertClose(total, commonwealthOperating + stateCapital + localCapital, 2e-9, `annual payer split for ${scenario.id}`);
+        const cumulative = year.cumulativePublicCosts;
+        assertClose(cumulative.total, cumulative.commonwealthOperating + cumulative.stateCapital + cumulative.localCapital, 2e-9, `cumulative payer split for ${scenario.id}`);
+        totalToDate += total;
+        assertClose(cumulative.total, totalToDate, 2e-9, `sum of annual costs for ${scenario.id}`);
+      }
     }
   });
 

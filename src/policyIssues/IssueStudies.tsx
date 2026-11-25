@@ -4,7 +4,7 @@ import { HousingPilot } from './housingPilot/HousingPilot';
 import { defaultHousingPilotSettings, housingPilotAssumptions } from './housingPilot/model';
 import { PilotEvidenceRegister } from './housingPilot/PilotEvidenceRegister';
 import { PolicyProposals, type ProgrammeScenarios } from './programmes/PolicyProposals';
-import { proposalEvidencePrefix, proposalPath } from './programmes/routes';
+import { housingPilotSettingsSection, preventionFollowupSection, programmeSettingsPrefix, proposalEvidencePrefix, proposalPath } from './programmes/routes';
 import { TradeExposure } from './trade';
 import { CountryVision, useCountryVision } from './vision';
 import './tools.css';
@@ -14,7 +14,9 @@ export default function IssueStudies({ fragment }: { fragment: string }) {
   const [settings, setSettings] = useState(defaultHousingPilotSettings);
   const [year, setYear] = useState(housingPilotAssumptions.downturnEndYear);
   const [scenarios, setScenarios] = useState<ProgrammeScenarios>({});
-  const selected = fragment.startsWith(proposalPath) ? fragment.slice(proposalPath.length) : undefined;
+  const selectedPrefix = [proposalPath, programmeSettingsPrefix].find((prefix) => fragment.startsWith(prefix));
+  const selectedProposal = fragment === preventionFollowupSection ? 'preventive-health' : selectedPrefix && fragment.slice(selectedPrefix.length);
+  const showHousing = fragment === 'housing-pilot' || fragment === housingPilotSettingsSection;
   const selectedEvidence = fragment.startsWith(proposalEvidencePrefix) ? fragment.slice(proposalEvidencePrefix.length) : undefined;
   const showEvidence = fragment === 'evidence-library' || fragment === 'housing-evidence-register' || selectedEvidence !== undefined;
 
@@ -22,6 +24,7 @@ export default function IssueStudies({ fragment }: { fragment: string }) {
     if (!fragment || fragment === 'dashboard' || fragment === 'australia-today') return;
     const target = document.getElementById(fragment) ?? document.getElementById('issue-studies');
     target?.scrollIntoView({ block: 'start' });
+    target?.querySelector<HTMLElement>(':is(h2, h3)[tabindex="-1"]')?.focus({ preventScroll: true });
   }, [fragment]);
 
   return (
@@ -35,8 +38,8 @@ export default function IssueStudies({ fragment }: { fragment: string }) {
       {showEvidence ? <><EvidenceLibrary vision={vision} selectedProposal={selectedEvidence} /><PilotEvidenceRegister /></>
         : fragment === 'trade-exposure' ? <TradeExposure />
         : fragment === 'country-vision' ? <CountryVision vision={vision} onChange={setVision} />
-        : fragment === 'housing-pilot' ? <HousingPilot vision={vision} settings={settings} year={year} onSettingsChange={setSettings} onYearChange={setYear} />
-        : <PolicyProposals selected={selected} scenarios={scenarios} onCompare={(id, values) => setScenarios((previous) => ({ ...previous, [id]: values }))} />}
+        : showHousing ? <HousingPilot vision={vision} settings={settings} year={year} onSettingsChange={setSettings} onYearChange={setYear} />
+        : <PolicyProposals selected={selectedProposal} scenarios={scenarios} onCompare={(id, values) => setScenarios((previous) => ({ ...previous, [id]: values }))} />}
     </div>
   );
 }

@@ -1,4 +1,7 @@
 import { useMemo, useState } from "react";
+import { IssueBrief } from "../IssueBrief";
+import { housingPilotSettingsSection } from "../programmes/routes";
+import { HousingWorkedExample } from "./HousingWorkedExample";
 import { visionPriorities, type CountryVisionValue, type VisionPriority } from "../vision";
 import {
   housingDownturns,
@@ -89,12 +92,13 @@ export function HousingPilot({ vision, settings, year, onSettingsChange, onYearC
   }
 
   return (
-    <section id="housing-pilot" aria-labelledby="pilot-title" className="housing-pilot">
-      <header className="panel pilot-intro">
+    <section id="housing-pilot" aria-labelledby="issue-brief-title" className="housing-pilot">
+      <IssueBrief id="affordable-housing" simulationId={housingPilotSettingsSection} />
+      <header className="panel pilot-intro" id={housingPilotSettingsSection}>
         <div className="pilot-intro-heading">
           <div>
-            <h2 id="pilot-title">Housing pilot</h2>
-            <p>Compare three housing packages from a June {baselineYear} reference. The selected economic conditions, rent response and rental support take-up apply across packages.</p>
+            <h2 tabIndex={-1}>Housing pilot</h2>
+            <p>All three packages start from the June {baselineYear} reference and face the same economic conditions. The baseline keeps the model’s reference housing settings.</p>
           </div>
         </div>
         <div className="pilot-settings" aria-label="Housing scenario settings">
@@ -117,18 +121,21 @@ export function HousingPilot({ vision, settings, year, onSettingsChange, onYearC
             </select>
           </div>
           <div className="year-select">
-            <label htmlFor="pilot-year">Inspect housing year</label>
-            <select id="pilot-year" value={year} onChange={(event) => onYearChange(Number(event.target.value))}>
-              {yearOptions.map((option) => <option key={option.year} value={option.year}>{option.year}{option.downturn.unemploymentIncreasePp > 0 ? " · Downturn" : ""}</option>)}
+            <label htmlFor="pilot-year">Year for detailed results</label>
+            <select id="pilot-year" aria-describedby="pilot-year-scope" value={year} onChange={(event) => onYearChange(Number(event.target.value))}>
+              {yearOptions.map((option) => <option key={option.year} value={option.year}>Year {option.year - baselineYear} · {option.year}{option.downturn.unemploymentIncreasePp > 0 ? " · Downturn" : ""}</option>)}
             </select>
           </div>
         </div>
+        <p id="pilot-year-scope" className="table-note">The selected year controls the economic snapshot and detailed results. The worked example always uses year 5.</p>
         <dl className="pilot-shock">
           <div><dt>Shared economic conditions in {year}</dt><dd>{!hasDownturn ? "Ordinary conditions" : downturnActive ? "Downturn" : year < assumptions.downturnStartYear ? "Before downturn" : "After downturn"}</dd></div>
           <div><dt>Unemployment rate</dt><dd>{baseline.unemploymentRate.toFixed(1)}%</dd></div>
           <div><dt>Available construction capacity</dt><dd>{Math.round(baseline.downturn.constructionCapacityFactor * 100)}% of usual capacity</dd></div>
         </dl>
       </header>
+
+      <HousingWorkedExample result={result} />
 
       <div className="pilot-scenarios" aria-label={`Housing package results for ${year}`}>
         {scenarios.map((scenario, scenarioIndex) => {

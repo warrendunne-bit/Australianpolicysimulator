@@ -55,6 +55,12 @@ input {
   align-items: center;
 }
 
+@media (min-width: 1181px) {
+  .game-header--navigation {
+    grid-template-columns: minmax(260px, 1fr) auto;
+  }
+}
+
 .game-flag {
   position: relative;
   display: grid;

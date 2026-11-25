@@ -112,7 +112,7 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showTurnReveal, setShowTurnReveal] = useState(false);
   const [fragment, setFragment] = useState(currentFragment);
-  const activeSection = normaliseSection(fragment || 'Australia today');
+  const activeSection = normaliseSection(fragment || 'Problems to solve');
   const [successWeights, setSuccessWeights] = useState<SuccessWeights>(DEFAULT_SUCCESS_WEIGHTS);
 
   const policies = useMemo<PolicySettings>(
@@ -317,11 +317,12 @@ export default function App() {
         hasPendingChanges={hasPendingDecisionChanges}
         maxYear={results.history.length}
         selectedYear={selectedYear}
+        showGeneralActions={activeSection !== 'Problems to solve' && activeSection !== 'Australia today' && activeSection !== 'Policies'}
         onEndYear={startSimulation}
         onSectionChange={changeActiveSection}
       />
 
-      {activeSection === 'Australia today' || activeSection === 'Problems to solve' ? (
+      {activeSection === 'Problems to solve' ? (
         <Suspense fallback={<p role="status">Loading policy comparisons…</p>}>
           <IssueStudies fragment={fragment} />
         </Suspense>
@@ -335,7 +336,7 @@ export default function App() {
         <BaselineHomePage mode="currentPath" onSectionChange={changeActiveSection} />
       ) : null}
 
-      {activeSection === 'Problems to solve' && !isIssueStudy(fragment) ? (
+      {fragment === 'problems-to-solve' ? (
         <details className="immigration-objectives">
           <summary>Explore objectives for the immigration lab</summary>
           <BaselineHomePage mode="problems" onSectionChange={changeActiveSection} />

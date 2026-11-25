@@ -1,10 +1,14 @@
 import { useRef, useState, type FormEvent } from "react";
 import { evidenceProposals } from "../housingPilot/evidence";
+import { IssueBrief } from "../IssueBrief";
+import { issueBriefs } from "../issueBriefs";
 import { communityExercises } from "./community";
 import { compareProgramme, initialProgrammeInputs, type ProgrammeInputs } from "./comparison";
 import { economicExercises } from "./economic";
+import { programmeGuides } from "./guides";
 import { householdExercises } from "./households";
-import { proposalEvidencePrefix, proposalHref, proposalsSection } from "./routes";
+import { PreventionSensitivity } from "./PreventionSensitivity";
+import { preventionFollowupSection, programmeSettingsPrefix, proposalHref, proposalsSection } from "./routes";
 import type { PolicyExercise, PolicyInput } from "./types";
 import "./programmes.css";
 
@@ -13,19 +17,6 @@ const exercises = new Map([
   ...householdExercises,
   ...communityExercises,
 ].map((exercise) => [exercise.id, exercise]));
-
-const issueNames: Readonly<Record<string, string>> = {
-  "affordable-housing": "Housing affordability",
-  "economic-diversification": "Economic diversification",
-  "energy-and-adaptation": "Clean and reliable energy",
-  "critical-systems": "Critical service continuity",
-  "early-years-and-skills": "Early childhood and skills",
-  "income-security": "Income and job security",
-  "preventive-health": "Preventive health",
-  belonging: "Community connection",
-  "attention-and-gambling": "Digital attention and gambling",
-  "government-evaluation": "Government delivery and evaluation",
-};
 
 export type ProgrammeScenarios = Readonly<Partial<Record<string, ProgrammeInputs>>>;
 
@@ -80,6 +71,16 @@ function ProgrammeComparison({ exercise, savedInputs, onCompare }: {
   const results = useRef<HTMLElement>(null);
   const outcomes = compareProgramme(exercise, applied);
   const pending = exercise.inputs.some(({ id }) => draft[id].trim() === "" || Number(draft[id]) !== applied[id]);
+  const simulationId = `${programmeSettingsPrefix}${exercise.id}`;
+  const guide = programmeGuides[exercise.id];
+  const firstInputs = exercise.inputs.filter(({ id }) => id === guide.controlId);
+  const otherPolicyInputs = exercise.inputs.filter(({ id, reference }) => id !== guide.controlId && reference !== undefined);
+  const sharedInputs = exercise.inputs.filter(({ id, reference }) => id !== guide.controlId && reference === undefined);
+  const keyOutcomes = [guide.outcomeId, guide.costId];
+  const orderedOutcomes = [
+    ...keyOutcomes.flatMap((id) => outcomes.filter((outcome) => outcome.id === id)),
+    ...outcomes.filter(({ id }) => !keyOutcomes.includes(id)),
+  ];
 
   function changeDraft(id: string, value: string) {
     setDraft((previous) => ({ ...previous, [id]: value }));
@@ -104,17 +105,31 @@ function ProgrammeComparison({ exercise, savedInputs, onCompare }: {
 
   return (
     <>
-      <header className="panel programme-intro">
-        <a className="programme-return" href={`#${proposalsSection}`}>All ten issues</a>
-        <h2 id="policy-proposals-title">{exercise.title}</h2>
+      <IssueBrief id={exercise.id} simulationId={simulationId} />
+      <header className="panel programme-intro" id={simulationId}>
+        <h2 tabIndex={-1}>{exercise.title}</h2>
         <p>{exercise.description}</p>
-        <a href={`#${proposalEvidencePrefix}${exercise.id}`}>Research and evidence limits</a>
+        <dl className="programme-scope">
+          <div><dt>Who or what is included</dt><dd>{guide.population}</dd></div>
+          <div><dt>Time covered</dt><dd>{guide.timeframe}</dd></div>
+        </dl>
       </header>
       <div className="programme-layout">
-        <form className="panel programme-controls" onSubmit={compare} aria-labelledby="programme-settings-heading">
-          <h3 id="programme-settings-heading">Scenario settings</h3>
-          <InputGroup title="Policy settings" inputs={exercise.inputs.filter(({ reference }) => reference !== undefined)} draft={draft} onChange={changeDraft} />
-          <InputGroup title="Shared assumptions" inputs={exercise.inputs.filter(({ reference }) => reference === undefined)} draft={draft} onChange={changeDraft} />
+        <form className="panel programme-controls" onSubmit={compare} aria-labelledby="programme-settings-heading"
+          onInvalidCapture={(event) => {
+            if (event.target instanceof HTMLInputElement) {
+              const details = event.target.closest('details');
+              if (details) details.open = true;
+            }
+          }}>
+          <h3 id="programme-settings-heading">Try one change</h3>
+          <p className="programme-summary">{guide.action}</p>
+          <InputGroup title="Suggested setting" inputs={firstInputs} draft={draft} onChange={changeDraft} />
+          <details className="programme-other-settings">
+            <summary>All other settings</summary>
+            <InputGroup title="Other policy settings" inputs={otherPolicyInputs} draft={draft} onChange={changeDraft} />
+            <InputGroup title="Shared assumptions" inputs={sharedInputs} draft={draft} onChange={changeDraft} />
+          </details>
           <div className="programme-actions">
             <button className="primary-button" type="submit">Compare scenarios</button>
             <button className="secondary-button" type="button" onClick={reset}>Reset defaults</button>
@@ -122,17 +137,17 @@ function ProgrammeComparison({ exercise, savedInputs, onCompare }: {
           <p className="sr-only" role="status">{announcement}</p>
         </form>
         <div className="programme-results">
-          <section className="panel" aria-labelledby="programme-results-heading" ref={results} tabIndex={-1}>
+          <section className="panel programme-results-panel" aria-labelledby="programme-results-heading" ref={results} tabIndex={-1}>
             <h3 id="programme-results-heading">Comparison results</h3>
-            <p className="programme-summary">The cases use illustrative settings and the same shared assumptions.</p>
+            <p className="programme-summary">{guide.interpretation} Both cases use the same shared assumptions.</p>
             {pending && <p className="programme-pending" role="status">Settings changed. Compare scenarios to update the results.</p>}
             <div className="table-wrap programme-table" role="region" aria-label="Programme outcomes" tabIndex={0}>
               <table>
                 <caption className="sr-only">Reference and proposed programme results with the change from reference.</caption>
                 <thead><tr><th scope="col">Outcome</th><th scope="col">Reference</th><th scope="col">Your scenario</th><th scope="col">Change</th></tr></thead>
                 <tbody>
-                  {outcomes.map((outcome) => (
-                    <tr key={outcome.id}>
+                  {orderedOutcomes.map((outcome) => (
+                    <tr key={outcome.id} className={keyOutcomes.includes(outcome.id) ? 'programme-key-outcome' : undefined}>
                       <th scope="row">{outcome.label}<small>{outcome.unit}</small>{outcome.description && <small>{outcome.description}</small>}</th>
                       <td>{outcome.reference === null ? "—" : format(outcome.reference, outcome.decimals)}</td>
                       <td>{format(outcome.value, outcome.decimals)}</td>
@@ -142,6 +157,11 @@ function ProgrammeComparison({ exercise, savedInputs, onCompare }: {
                 </tbody>
               </table>
             </div>
+            <div className="programme-evaluation">
+              <h4>What to measure next</h4>
+              <p>{guide.evaluation}</p>
+              {exercise.id === 'preventive-health' && <p><a href={`#${preventionFollowupSection}`}>Explore the ten-year sensitivity analysis</a></p>}
+            </div>
           </section>
           <details className="panel programme-method">
             <summary>Assumptions and scope</summary>
@@ -149,6 +169,7 @@ function ProgrammeComparison({ exercise, savedInputs, onCompare }: {
           </details>
         </div>
       </div>
+      {exercise.id === 'preventive-health' && <PreventionSensitivity exercise={exercise} inputs={applied} />}
     </>
   );
 }
@@ -160,20 +181,20 @@ export function PolicyProposals({ selected, scenarios, onCompare }: {
 }) {
   const exercise = selected ? exercises.get(selected) : undefined;
   return (
-    <section id={proposalsSection} className="programmes" aria-labelledby="policy-proposals-title">
+    <section id={exercise ? proposalHref(exercise.id).slice(1) : proposalsSection} className="programmes" aria-labelledby={exercise ? 'issue-brief-title' : 'policy-proposals-title'}>
       {exercise ? (
         <ProgrammeComparison key={exercise.id} exercise={exercise} savedInputs={scenarios[exercise.id]} onCompare={onCompare} />
       ) : (
         <>
           <header className="panel programme-intro programme-catalogue-intro">
-            <h2 id="policy-proposals-title">Ten major issues</h2>
-            <p>Choose an issue to explore its policy options, compare results, and inspect the assumptions behind them.</p>
+            <h2 id="policy-proposals-title" tabIndex={-1}>Ten major issues facing Australia</h2>
+            <p>Explore the long-term challenges identified in <em>Australian prosperity, wellbeing and resilience</em>. Choose a question to see what’s driving the issue, then test a policy response.</p>
           </header>
           <ul className="programme-catalogue">
-            {evidenceProposals.map((proposal) => (
-              <li className="panel programme-card" key={proposal.id}>
-                <h3><a href={proposalHref(proposal.id)}>{issueNames[proposal.id] ?? proposal.title}</a></h3>
-                <p>{proposal.id === "affordable-housing" ? "Compare dwelling supply and rental support under shared economic conditions." : exercises.get(proposal.id)?.description}</p>
+            {evidenceProposals.map(({ id }) => (
+              <li className="panel programme-card" key={id}>
+                <h3><a href={proposalHref(id)}>{issueBriefs[id].title}</a></h3>
+                <p>{issueBriefs[id].question}</p>
               </li>
             ))}
           </ul>

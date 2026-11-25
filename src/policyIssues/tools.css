@@ -107,6 +107,17 @@
 .policy-issues-content .programme-catalogue, .policy-issues-content .evidence-list { padding-left: 0; }
 .policy-issues-content .trade-controls input[type="range"] { margin: 3px 0 0; }
 .policy-issues-content > [id], .policy-issues-content .evidence-entry details { scroll-margin-top: 85px; }
+.policy-issues-content :is(.pilot-intro, .programme-intro)[id] { scroll-margin-top: 85px; }
+.policy-issues-content .issue-brief h2 { color: #173f51; font-size: clamp(1.65rem, 3vw, 2.4rem); }
+.policy-issues-content .issue-question { max-width: 68ch; color: #244f59; font-size: 1.05rem; }
+.policy-issues-content .issue-brief-return { display: inline-block; margin-bottom: 8px; font-size: 0.84rem; }
+.policy-issues-content .issue-brief-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 32px; margin-top: 22px; }
+.policy-issues-content .issue-brief-grid p { max-width: 68ch; color: #415963; font-size: 0.9rem; }
+.policy-issues-content .issue-brief-grid p + h3 { margin-top: 16px; }
+.policy-issues-content .issue-indicator { margin-top: 10px; padding: 10px 12px; border-inline-start: 3px solid #75a69b; background: #edf5f2; }
+.policy-issues-content .issue-indicator a { display: block; width: fit-content; margin-top: 4px; font-size: 0.8rem; }
+.policy-issues-content .issue-brief-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 18px; margin-top: 18px; font-size: 0.86rem; }
+.policy-issues-content .issue-brief-actions .primary-button { display: inline-flex; align-items: center; text-decoration: none; }
 
 @media (max-width: 1120px) {
   .policy-issues-content .panel { padding: 20px; }
@@ -114,6 +125,7 @@
 }
 
 @media (max-width: 780px) {
+  .policy-issues-content .issue-brief-grid { grid-template-columns: minmax(0, 1fr); }
   .policy-issues-content .pilot-scenarios { grid-template-columns: 1fr; gap: 12px; }
   .policy-issues-content .pilot-intro-heading, .policy-issues-content .pilot-result-heading { flex-wrap: wrap; }
   .policy-issues-content .pilot-settings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -129,6 +141,7 @@
 }
 
 @media (max-width: 480px) {
+  .policy-issues-content :is(.pilot-intro, .programme-intro)[id] { scroll-margin-top: 132px; }
   .policy-issues-content > [id], .policy-issues-content .evidence-entry details { scroll-margin-top: 132px; }
   .policy-issues-content .panel { padding: 18px; }
   .policy-issues-content .year-select { max-width: 170px; }
