@@ -45,6 +45,9 @@
 .policy-issues-content .housing-pilot .year-select { margin: 0; min-width: 0; }
 .policy-issues-content .housing-pilot .year-select select { max-width: 100%; }
 .policy-issues-content .pilot-settings { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 18px; margin-top: 17px; }
+.policy-issues-content .ownership-settings { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-bottom: 16px; }
+.policy-issues-content .ownership-method { margin-top: 10px; }
+.policy-issues-content .pilot-ownership .pilot-difference { white-space: normal; }
 .policy-issues-content .pilot-result-settings { display: grid; grid-template-columns: repeat(2, minmax(0, auto)); gap: 12px; }
 .policy-issues-content .pilot-priority { margin-top: 6px; }
 .policy-issues-content .pilot-priority a { color: #155f70; text-underline-offset: 3px; }
@@ -107,7 +110,7 @@
 .policy-issues-content .programme-catalogue, .policy-issues-content .evidence-list { padding-left: 0; }
 .policy-issues-content .trade-controls input[type="range"] { margin: 3px 0 0; }
 .policy-issues-content > [id], .policy-issues-content .evidence-entry details { scroll-margin-top: 85px; }
-.policy-issues-content :is(.pilot-intro, .programme-intro)[id] { scroll-margin-top: 85px; }
+.policy-issues-content :is(.pilot-intro, .pilot-ownership, .programme-intro)[id] { scroll-margin-top: 85px; }
 .policy-issues-content .issue-brief h2 { color: #173f51; font-size: clamp(1.65rem, 3vw, 2.4rem); }
 .policy-issues-content .issue-question { max-width: 68ch; color: #244f59; font-size: 1.05rem; }
 .policy-issues-content .issue-brief-return { display: inline-block; margin-bottom: 8px; font-size: 0.84rem; }
@@ -141,7 +144,7 @@
 }
 
 @media (max-width: 480px) {
-  .policy-issues-content :is(.pilot-intro, .programme-intro)[id] { scroll-margin-top: 132px; }
+  .policy-issues-content :is(.pilot-intro, .pilot-ownership, .programme-intro)[id] { scroll-margin-top: 132px; }
   .policy-issues-content > [id], .policy-issues-content .evidence-entry details { scroll-margin-top: 132px; }
   .policy-issues-content .panel { padding: 18px; }
   .policy-issues-content .year-select { max-width: 170px; }

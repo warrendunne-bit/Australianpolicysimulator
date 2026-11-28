@@ -15,16 +15,20 @@ export interface IssueBriefDetails {
 
 export const issueBriefs: Readonly<Record<string, IssueBriefDetails>> = {
   'affordable-housing': {
-    title: 'Housing affordability',
-    question: 'During a downturn, which households get relief first from faster construction or rental support?',
+    title: 'Housing affordability and security',
+    question: 'How can more people afford a secure home and, if they want to buy, find one within a reasonable commute of work?',
     indicators: [{
       observation: 'In 2023, Australian private renters spent 19.8% of their gross household income on rent. Households with a mortgage put 16.1% of their gross income towards mortgage payments.',
       source: 'ABS housing serviceability, based on HILDA',
       url: 'https://www.abs.gov.au/statistics/measuring-what-matters/measuring-what-matters-themes-and-indicators/secure/housing-serviceability',
+    }, {
+      observation: 'Among households with a key member aged 25–39, about 55% lived in an owned home in 2021, down from 62% in 2006 and 66% in 1991.',
+      source: 'ABS comparison of home ownership across generations',
+      url: 'https://www.abs.gov.au/articles/back-my-day-comparing-millennials-earlier-generations#housing',
     }],
-    whyItMatters: 'When housing costs take up more of a household’s income, less is left for other essentials. A downturn can reduce both earnings and construction capacity while households still need somewhere to live.',
-    intervention: 'States, territories and councils fund works that enable more homes. Delivery takes at least two years in the pilot, and the effect on market rent depends on how strongly rents respond to supply. A Commonwealth top-up lowers out-of-pocket costs earlier for eligible private renters who take it up.',
-    progress: 'Over ten years, compare extra homes, public spending and the share of disposable income spent on housing in nine household examples. The ABS figures above use gross income. Real-world evaluation would track lower-income renters’ costs and actual completions.',
+    whyItMatters: 'A safe, stable home is a basic need. Knowing you can stay helps you feel secure and plan around work, school and care. After paying for housing, food, bills and travel to work, households need enough money left to save and handle setbacks such as reduced hours or an unexpected bill.',
+    intervention: 'Use planning and infrastructure to make room for more affordable homes near jobs and reliable public transport. Improve security for renters through stable tenancies and targeted rent relief. Test whether first-home deposit support helps people buy while leaving enough money for repayments and everyday expenses.',
+    progress: 'Track how many first-home buyers purchase within a reasonable commute and keep up with repayments over time. Check whether renters face fewer forced moves and whether renters and owners have more money left after essentials. Compare results by income and location.',
   },
   'economic-diversification': {
     title: 'Economic diversification',

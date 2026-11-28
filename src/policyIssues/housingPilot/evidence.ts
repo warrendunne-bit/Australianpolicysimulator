@@ -21,11 +21,11 @@ export const evidenceProposals: readonly EvidenceProposal[] = [
   {
     id: "affordable-housing",
     title: "Build affordable homes near opportunity",
-    action: "Enable more homes near jobs and transport, connect new developments to services, expand social and community housing, and improve rental security.",
+    action: "Enable more affordable homes near jobs and transport, connect new developments to services, expand social and community housing, and improve rental security. Test ways to help first-home buyers afford both the upfront costs and ongoing repayments.",
     judgement: "Strong core evidence",
     status: "Housing pilot",
-    simulatorUse: "The pilot compares faster supply and targeted rental support. Location, rental security, and state property-tax reform would need additional modelling.",
-    outcomes: "Net dwelling additions, housing costs as a share of income, income after housing costs, and public expenditure.",
+    simulatorUse: "The first-home example compares the budget for staying in a rental or buying at two assumed prices and commute distances. The national pilot compares faster supply and targeted rental support using its own assumptions.",
+    outcomes: "Track first-home purchases within reach of jobs, sustained ownership, forced moves and cash left after essentials, by income and location. The national pilot reports dwelling additions, housing costs relative to income, income after housing, and public expenditure.",
     sources: [
       {
         title: "Greenaway-McGrevy and Phillips, The Impact of Upzoning on Housing Construction in Auckland (2022)",
@@ -36,6 +36,16 @@ export const evidenceProposals: readonly EvidenceProposal[] = [
         title: "National Housing Supply and Affordability Council, State of the Housing System 2026",
         url: "https://nhsac.gov.au/reports-and-submissions/state-housing-system-2026",
         interpretation: "Documents Australian affordability and supply conditions. It provides context for the pilot’s measures and delivery constraints.",
+      },
+      {
+        title: "Australian Treasury, Increasing housing supply",
+        url: "https://treasury.gov.au/policy-topics/housing/increasing-housing-supply",
+        interpretation: "Describes planning and infrastructure measures to support more housing near employment and public transport.",
+      },
+      {
+        title: "ASIC Moneysmart, Buying a house",
+        url: "https://moneysmart.gov.au/home-loans/buying-a-house",
+        interpretation: "Identifies upfront and ongoing buying costs. The household example uses assumed dollar amounts for those costs.",
       },
     ],
   },

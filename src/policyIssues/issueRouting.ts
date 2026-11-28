@@ -1,8 +1,9 @@
-import { housingPilotSettingsSection, preventionFollowupSection, programmeSettingsPrefix, proposalEvidencePrefix, proposalPath, proposalsSection } from './programmes/routes';
+import { housingOwnershipSection, housingPilotSettingsSection, preventionFollowupSection, programmeSettingsPrefix, proposalEvidencePrefix, proposalPath, proposalsSection } from './programmes/routes';
 
 export function isIssueStudy(fragment: string) {
   return fragment === proposalsSection
     || fragment === 'housing-pilot'
+    || fragment === housingOwnershipSection
     || fragment === housingPilotSettingsSection
     || fragment === preventionFollowupSection
     || fragment === 'trade-exposure'

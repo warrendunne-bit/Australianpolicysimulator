@@ -1,7 +1,14 @@
+import type { ReactNode } from 'react';
 import { issueBriefs } from './issueBriefs';
 import { proposalEvidencePrefix } from './programmes/routes';
 
-export function IssueBrief({ id, simulationId }: { id: string; simulationId: string }) {
+export function IssueBrief({ id, simulationId, simulationLabel = 'Try the comparison', interventionHeading = 'How the intervention works', children }: {
+  id: string;
+  simulationId: string;
+  simulationLabel?: string;
+  interventionHeading?: string;
+  children?: ReactNode;
+}) {
   const brief = issueBriefs[id];
 
   return (
@@ -18,14 +25,15 @@ export function IssueBrief({ id, simulationId }: { id: string; simulationId: str
           ))}
         </div>
         <div>
-          <h3>How the intervention works</h3>
+          <h3>{interventionHeading}</h3>
           <p>{brief.intervention}</p>
           <h3>What progress would look like</h3>
           <p>{brief.progress}</p>
         </div>
       </div>
       <div className="issue-brief-actions">
-        <a className="primary-button" href={`#${simulationId}`}>Try the comparison</a>
+        <a className="primary-button" href={`#${simulationId}`}>{simulationLabel}</a>
+        {children}
         <a href={`#${proposalEvidencePrefix}${id}`}>Research and evidence limits</a>
       </div>
     </header>

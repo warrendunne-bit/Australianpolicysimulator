@@ -8,6 +8,7 @@ import { defaultState } from "../data/defaultState";
 import { budgetModule } from "../modules/budgetModule";
 import { housingModule, housingSupplyGap, weeklyRentProxy } from "../modules/housingModule";
 import { populationModule } from "../modules/populationModule";
+import { monthlyMortgagePayment } from "./mortgage";
 
 const weeksPerYear = 52;
 const dollarsPerBillion = 1_000_000_000;
@@ -209,12 +210,6 @@ function buildSharedYears(downturn: HousingPilotSettings["downturn"]): SharedYea
   });
 }
 
-function annualMortgagePayments(principal: number): number {
-  const monthlyRate = assumptions.mortgageInterestPercent / 100 / 12;
-  const months = assumptions.mortgageTermYears * 12;
-  return 12 * principal * monthlyRate / (1 - (1 + monthlyRate) ** -months);
-}
-
 function householdOutcomes(
   year: SharedYear,
   weeklyMarketRent: number,
@@ -228,7 +223,7 @@ function householdOutcomes(
     const ownerRunningCosts = profile.annualOwnerCosts * earningsScale;
     const grossCosts: Record<HousingTenure, number> = {
       "Private renter": round(weeklyMarketRent * profile.rentMultiplier * weeksPerYear),
-      "Mortgage holder": round(annualMortgagePayments(profile.mortgagePrincipal) + ownerRunningCosts),
+      "Mortgage holder": round(12 * monthlyMortgagePayment(profile.mortgagePrincipal, assumptions.mortgageInterestPercent, assumptions.mortgageTermYears) + ownerRunningCosts),
       "Outright owner": round(ownerRunningCosts),
     };
 

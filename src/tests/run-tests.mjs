@@ -43,9 +43,10 @@ try {
   const { communityExercises } = await server.ssrLoadModule('/policyIssues/programmes/community.ts');
   const { initialProgrammeInputs, compareProgramme } = await server.ssrLoadModule('/policyIssues/programmes/comparison.ts');
   const { programmeGuides } = await server.ssrLoadModule('/policyIssues/programmes/guides.ts');
-  const { proposalHref } = await server.ssrLoadModule('/policyIssues/programmes/routes.ts');
+  const { proposalHref, housingOwnershipSection } = await server.ssrLoadModule('/policyIssues/programmes/routes.ts');
   const { isIssueStudy } = await server.ssrLoadModule('/policyIssues/issueRouting.ts');
   const { runHousingPilot } = await server.ssrLoadModule('/policyIssues/housingPilot/model.ts');
+  const { compareFirstHome, defaultFirstHomeSettings, firstHomeAssumptions } = await server.ssrLoadModule('/policyIssues/housingPilot/homeOwnership.ts');
 
   test('all ten issues have a brief and a sourced Australian indicator', () => {
     assert(Object.keys(issueBriefs).length === evidenceProposals.length, 'issue briefs and evidence proposals must cover the same issues');
@@ -101,6 +102,28 @@ try {
       assert(year?.downturn.constructionCapacityFactor === 0.65, 'expected central downturn across all packages');
       assert(year.cohorts.length === 9 && Number.isFinite(year.publicCosts.total), 'missing tenure and income outcomes or public costs');
     }
+  });
+
+  test('buying near work trades off upfront costs, the commute and cash after essentials', () => {
+    assert(isIssueStudy(housingOwnershipSection), 'the ownership comparison should open directly');
+    const baseline = compareFirstHome(defaultFirstHomeSettings);
+    assert(baseline.renting.monthlyCash === 1_400 && baseline.monthlyDepositSavings === 900, 'renting should leave enough for the buffer and deposit savings');
+    assert(baseline.nearer.upfrontCash === 138_000 && baseline.nearer.monthsToSave === 104, 'the near-work purchase should include buying costs and existing savings');
+    assert(baseline.nearer.commute.minutes < baseline.farther.commute.minutes, 'the near-work purchase should have a shorter commute');
+    assert(baseline.nearer.monthlyCash >= firstHomeAssumptions.monthlyCashBuffer, 'the default near-work purchase should keep the cash buffer');
+
+    const lowerPrice = compareFirstHome({ ...defaultFirstHomeSettings, nearPrice: 520_000 });
+    assert(lowerPrice.nearer.monthsToSave < baseline.nearer.monthsToSave, 'a lower price should shorten the wait to buy');
+    assert(lowerPrice.nearer.monthlyCash > lowerPrice.farther.monthlyCash, 'at the same price, lower travel costs should leave more cash');
+    assert(lowerPrice.farther.monthlyCash === baseline.farther.monthlyCash, 'changing the near-work price should leave the farther option unchanged');
+
+    const smallerDeposit = compareFirstHome({ ...defaultFirstHomeSettings, depositPercent: 10 });
+    assert(smallerDeposit.nearer.monthsToSave < baseline.nearer.monthsToSave, 'a smaller deposit should shorten the wait to buy');
+    assert(smallerDeposit.nearer.monthlyCash < baseline.nearer.monthlyCash, 'a smaller deposit should leave less cash after repayments');
+
+    const higherRate = compareFirstHome({ ...defaultFirstHomeSettings, ratePercent: 8 });
+    assert(higherRate.nearer.monthlyCash < 0, 'a higher rate should expose a near-work budget shortfall');
+    assert(higherRate.renting.monthlyCash === baseline.renting.monthlyCash, 'mortgage rates should only affect buyers in this example');
   });
 
   test('preventive health follow-up counts only adults remaining at risk', () => {

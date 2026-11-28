@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { IssueBrief } from "../IssueBrief";
-import { housingPilotSettingsSection } from "../programmes/routes";
+import { housingOwnershipSection, housingPilotSettingsSection } from "../programmes/routes";
+import { HomeOwnershipExample } from "./HomeOwnershipExample";
 import { HousingWorkedExample } from "./HousingWorkedExample";
 import { visionPriorities, type CountryVisionValue, type VisionPriority } from "../vision";
 import {
@@ -93,11 +94,14 @@ export function HousingPilot({ vision, settings, year, onSettingsChange, onYearC
 
   return (
     <section id="housing-pilot" aria-labelledby="issue-brief-title" className="housing-pilot">
-      <IssueBrief id="affordable-housing" simulationId={housingPilotSettingsSection} />
+      <IssueBrief id="affordable-housing" simulationId={housingOwnershipSection} simulationLabel="Explore buying near work" interventionHeading="What could improve housing security">
+        <a href={`#${housingPilotSettingsSection}`}>Compare supply and rent support</a>
+      </IssueBrief>
+      <HomeOwnershipExample />
       <header className="panel pilot-intro" id={housingPilotSettingsSection}>
         <div className="pilot-intro-heading">
           <div>
-            <h2 tabIndex={-1}>Housing pilot</h2>
+            <h2 tabIndex={-1}>Housing supply and rental support pilot</h2>
             <p>All three packages start from the June {baselineYear} reference and face the same economic conditions. The baseline keeps the model’s reference housing settings.</p>
           </div>
         </div>
