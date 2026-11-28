@@ -55,7 +55,7 @@ npm run preview
 
 ## Deployment: GitHub Pages and Vercel
 
-The **Ten major issues** catalogue appears on Australia today and under Problems to solve. It links to the three-package housing pilot and nine programme comparisons. Evidence, trade exposure, and country vision are available from the issue tools navigation. These studies retain their own assumptions and run independently of the immigration lab and general simulator.
+The **Ten major issues** catalogue appears on Australia today and under Problems to solve. It links to the housing pilot and nine other policy topics. **Energy security and cost** compares reserve power and fixed-price purchases for a region during an evening peak. The same brief links to a public-building efficiency and backup comparison. Evidence, trade exposure, and country vision are available from the issue tools navigation. These studies retain their own assumptions and run independently of the immigration lab and general simulator.
 
 This project deliberately supports two deployment targets with different asset paths:
 

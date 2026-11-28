@@ -1,3 +1,5 @@
+import { regionalElectricityId } from './routes';
+
 export interface ProgrammeGuide {
   controlId: string;
   action: string;
@@ -10,6 +12,16 @@ export interface ProgrammeGuide {
 }
 
 export const programmeGuides: Readonly<Record<string, ProgrammeGuide>> = {
+  [regionalElectricityId]: {
+    controlId: 'reserveMW',
+    action: 'Book another 5 MW of reserve and check how much unmet demand it covers. Under All other settings, try fixing a larger share of purchases, then lower the spot price to see when the contract costs more.',
+    population: 'A buyer serving households and businesses in one illustrative region.',
+    timeframe: 'One four-hour evening peak. All costs shown are for those four hours.',
+    outcomeId: 'unserved',
+    costId: 'procurement-cost',
+    interpretation: 'Read spending alongside electricity delivered. A buyer can spend less simply because customers went without power. Reserve capacity can cover a shortfall, while a fixed price makes the cost of grid purchases more predictable.',
+    evaluation: 'Compare actual purchase and reserve costs with how often reserves were needed. Check the hours of interruption for different customers, output lost at affected firms and the prices households and businesses ultimately paid.',
+  },
   'energy-and-adaptation': {
     controlId: 'upgradeTarget',
     action: 'Increase the number of buildings planned for upgrades. Compare the electricity bought over a full year and check how much essential service time the package preserves in the example outage.',

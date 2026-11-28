@@ -22,6 +22,8 @@ export interface PolicyOutcome {
 
 export interface PolicyExercise {
   id: string;
+  /** The parent brief when an issue offers more than one comparison. */
+  issueId?: string;
   title: string;
   description: string;
   inputs: readonly PolicyInput[];

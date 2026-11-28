@@ -9,7 +9,7 @@ export interface IssueBriefDetails {
   question: string;
   indicators: readonly AustralianIndicator[];
   whyItMatters: string;
-  intervention: string;
+  intervention: string | readonly string[];
   progress: string;
 }
 
@@ -43,16 +43,25 @@ export const issueBriefs: Readonly<Record<string, IssueBriefDetails>> = {
     progress: 'Compare adoption, applicants left without a place and public cost over one year. Longer-term evaluation would track whether adoption lasts and firms enter new markets or expand what they produce.',
   },
   'energy-and-adaptation': {
-    title: 'Clean and reliable energy',
-    question: 'Can public buildings use less electricity and keep essential services running through outages?',
+    title: 'Energy security and cost',
+    question: 'How can Australia keep power and fuel available when people need them, at prices households and businesses can plan around?',
     indicators: [{
-      observation: 'Renewables supplied 39.6% of all electricity generated in Australia in calendar year 2025.',
-      source: 'Australian Energy Statistics electricity generation',
-      url: 'https://www.energy.gov.au/energy-data/australian-energy-statistics/electricity-generation',
+      observation: 'In the ACCC sample across NSW, Victoria, South Australia and south-east Queensland, the median small-business electricity bill after rebates rose 20% from the September quarter of 2024 to the same quarter of 2025. Before rebates the increase was 7%.',
+      source: 'ACCC electricity market inquiry, June 2026 report',
+      url: 'https://www.accc.gov.au/system/files/inquiry-national-electricity-market-report-june-2026.pdf',
+    }, {
+      observation: 'Australia imported 80.8% of the refined petroleum products it used in 2024–25. A disruption to fuel deliveries can reach farms and freight operators as well as motorists.',
+      source: 'Australian Energy Statistics, energy trade',
+      url: 'https://www.energy.gov.au/energy-data/australian-energy-statistics/energy-trade',
     }],
-    whyItMatters: 'As more activities rely on electricity, schools, clinics and other public buildings need affordable power and a way to keep essential services running through disruptions.',
-    intervention: 'Upgrade building efficiency and add backup power. Efficiency reduces electricity purchased each year, while backup keeps an essential service running up to its rated duration.',
-    progress: 'Compare purchased electricity, variable charges, emissions, upfront cost and service hours lost in one outage. Longer-term evaluation would track metered savings, maintenance costs and services kept open in actual disruptions.',
+    whyItMatters: 'A food processor needs heat to run a production line, electricity to keep stock cold and fuel to get it to shops. A supply interruption can cost a shift or spoil a shipment. High energy bills squeeze household budgets and raise the cost of every unit a factory makes. Dependable supply at predictable prices helps Australian firms compete for orders and decide where to invest.',
+    intervention: [
+      'Bring new generation and grid connections online before older plants retire. Compare the full cost of each option, including the storage or on-demand generation needed to cover peak hours.',
+      'Upgrade equipment where energy savings justify the cost, such as refrigeration in food supply chains. Pay willing users to move flexible work away from expensive peak hours.',
+      'Buy some electricity at a fixed price to make costs more predictable. This cushions a price spike and can cost more when spot prices fall.',
+      'Keep freight and farms supplied during a fuel disruption. Weigh the cost of alternative suppliers and diesel stocks against the cost of trucks and machinery sitting idle.',
+    ],
+    progress: 'Look for fewer hours without power, fewer production stoppages and enough fuel on hand to keep essential freight moving. Track bills as a share of household income and energy cost per unit of business output, including how much each varies over time. Count the cost of securing supply alongside the disruptions avoided.',
   },
   'critical-systems': {
     title: 'Critical service continuity',

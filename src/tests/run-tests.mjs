@@ -38,6 +38,7 @@ try {
   const { evidenceProposals } = await server.ssrLoadModule('/policyIssues/housingPilot/evidence.ts');
   const { issueBriefs } = await server.ssrLoadModule('/policyIssues/issueBriefs.ts');
   const { economicExercises } = await server.ssrLoadModule('/policyIssues/programmes/economic.ts');
+  const { regionalElectricity } = await server.ssrLoadModule('/policyIssues/programmes/regionalElectricity.ts');
   const { householdExercises } = await server.ssrLoadModule('/policyIssues/programmes/households.ts');
   const { comparePreventionFollowup } = await server.ssrLoadModule('/policyIssues/programmes/preventionFollowup.ts');
   const { communityExercises } = await server.ssrLoadModule('/policyIssues/programmes/community.ts');
@@ -80,7 +81,7 @@ try {
   });
 
   test('each programme guide points to a policy setting and distinct outcome and cost rows', () => {
-    const exercises = [...economicExercises, ...householdExercises, ...communityExercises];
+    const exercises = [regionalElectricity, ...economicExercises, ...householdExercises, ...communityExercises];
     assert(Object.keys(programmeGuides).length === exercises.length, 'programme guides must cover exactly the programme comparisons');
     for (const exercise of exercises) {
       const guide = programmeGuides[exercise.id];
@@ -92,6 +93,37 @@ try {
       assert(outcomes.filter(({ id }) => id === guide.outcomeId).length === 1, `invalid primary result for ${exercise.id}`);
       assert(outcomes.filter(({ id, unit }) => id === guide.costId && unit.startsWith('A$')).length === 1, `invalid cost result for ${exercise.id}`);
     }
+  });
+
+  test('regional reserve power covers only a shortfall and incurs a booking fee even when unused', () => {
+    const inputs = initialProgrammeInputs(regionalElectricity.inputs);
+    const compare = (overrides) => Object.fromEntries(compareProgramme(regionalElectricity, { ...inputs, ...overrides }).map(row => [row.id, row]));
+    const peak = compare({});
+    assert(peak.unserved.reference === 80 && peak.unserved.value === 20, '15 MW of reserve should cover 60 MWh of an 80 MWh shortfall');
+    assert(peak.delivered.value + peak.unserved.value === 400, 'delivered and unmet energy must reconcile with demand');
+    assert(peak['procurement-cost'].reference === 80_000 && peak['procurement-cost'].value === 74_500, 'expected grid, booking and running costs for one peak');
+
+    const surplusReserve = compare({ reserveMW: 30 });
+    assert(surplusReserve.unserved.value === 0 && surplusReserve['reserve-energy'].value === 80, 'reserve dispatch should stop at demand');
+    const ampleGrid = compare({ availableMW: 120 });
+    assert(ampleGrid['reserve-energy'].value === 0 && ampleGrid['reserve-cost'].value === 4_500, 'unused reserve should incur only its booking fee');
+    const noDemand = compare({ demandMW: 0 });
+    assert(noDemand.unserved.value === 0 && noDemand.delivered.value === 0 && noDemand['procurement-cost'].value === 4_500, 'zero demand should still incur the agreed booking fee');
+  });
+
+  test('price cover changes procurement cost and spot exposure independently of physical supply', () => {
+    const inputs = initialProgrammeInputs(regionalElectricity.inputs);
+    const calculate = (overrides) => Object.fromEntries(regionalElectricity.calculate({ ...inputs, ...overrides }).map(({ id, value }) => [id, value]));
+    const spot = calculate({ fixedShare: 0 });
+    const fixed = calculate({ fixedShare: 100 });
+    assert(spot.unserved === fixed.unserved && spot.delivered === fixed.delivered, 'changing contract coverage should leave physical deliveries unchanged');
+    assert(spot['spot-exposure'] === 320 && fixed['spot-exposure'] === 0, 'the contract applies to delivered grid energy');
+    assert(fixed['procurement-cost'] < spot['procurement-cost'], 'price cover should reduce purchase costs when spot prices exceed the contract rate');
+    const cheapSpot = calculate({ spotPrice: 80, fixedShare: 0 });
+    const cheapFixed = calculate({ spotPrice: 80, fixedShare: 100 });
+    assert(cheapFixed['procurement-cost'] === fixed['procurement-cost'] && cheapSpot['procurement-cost'] < cheapFixed['procurement-cost'], 'full cover should remove spot exposure and can cost more');
+    const noSupply = calculate({ availableMW: 0, reserveMW: 0, fixedShare: 100 });
+    assert(noSupply.delivered === 0 && noSupply.unserved === 400 && noSupply['procurement-cost'] === 0, 'a price agreement alone cannot supply power');
   });
 
   test('the housing pilot shares downturn conditions across three packages', () => {

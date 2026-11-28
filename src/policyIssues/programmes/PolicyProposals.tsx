@@ -8,11 +8,13 @@ import { economicExercises } from "./economic";
 import { programmeGuides } from "./guides";
 import { householdExercises } from "./households";
 import { PreventionSensitivity } from "./PreventionSensitivity";
-import { preventionFollowupSection, programmeSettingsPrefix, proposalHref, proposalsSection } from "./routes";
+import { regionalElectricity } from "./regionalElectricity";
+import { energyIssueId, preventionFollowupSection, programmeSettingsPrefix, proposalHref, proposalsSection, regionalElectricityId } from "./routes";
 import type { PolicyExercise, PolicyInput } from "./types";
 import "./programmes.css";
 
 const exercises = new Map([
+  regionalElectricity,
   ...economicExercises,
   ...householdExercises,
   ...communityExercises,
@@ -72,6 +74,7 @@ function ProgrammeComparison({ exercise, savedInputs, onCompare }: {
   const outcomes = compareProgramme(exercise, applied);
   const pending = exercise.inputs.some(({ id }) => draft[id].trim() === "" || Number(draft[id]) !== applied[id]);
   const simulationId = `${programmeSettingsPrefix}${exercise.id}`;
+  const issueId = exercise.issueId ?? exercise.id;
   const guide = programmeGuides[exercise.id];
   const firstInputs = exercise.inputs.filter(({ id }) => id === guide.controlId);
   const otherPolicyInputs = exercise.inputs.filter(({ id, reference }) => id !== guide.controlId && reference !== undefined);
@@ -105,7 +108,11 @@ function ProgrammeComparison({ exercise, savedInputs, onCompare }: {
 
   return (
     <>
-      <IssueBrief id={exercise.id} simulationId={simulationId} />
+      {issueId === energyIssueId ? (
+        <IssueBrief id={issueId} simulationId={`${programmeSettingsPrefix}${regionalElectricityId}`} simulationLabel="Compare supply and cost" interventionHeading="How to secure supply and manage costs">
+          <a href={`#${programmeSettingsPrefix}${energyIssueId}`}>Compare public building upgrades</a>
+        </IssueBrief>
+      ) : <IssueBrief id={issueId} simulationId={simulationId} />}
       <header className="panel programme-intro" id={simulationId}>
         <h2 tabIndex={-1}>{exercise.title}</h2>
         <p>{exercise.description}</p>
@@ -181,7 +188,7 @@ export function PolicyProposals({ selected, scenarios, onCompare }: {
 }) {
   const exercise = selected ? exercises.get(selected) : undefined;
   return (
-    <section id={exercise ? proposalHref(exercise.id).slice(1) : proposalsSection} className="programmes" aria-labelledby={exercise ? 'issue-brief-title' : 'policy-proposals-title'}>
+    <section id={exercise ? proposalHref(exercise.issueId ?? exercise.id).slice(1) : proposalsSection} className="programmes" aria-labelledby={exercise ? 'issue-brief-title' : 'policy-proposals-title'}>
       {exercise ? (
         <ProgrammeComparison key={exercise.id} exercise={exercise} savedInputs={scenarios[exercise.id]} onCompare={onCompare} />
       ) : (

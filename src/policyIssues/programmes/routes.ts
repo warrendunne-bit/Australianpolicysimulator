@@ -4,6 +4,8 @@ export const proposalEvidencePrefix = "proposal-evidence-";
 export const housingPilotSettingsSection = "housing-pilot-settings";
 export const housingOwnershipSection = "housing-home-ownership";
 export const programmeSettingsPrefix = "compare-programme/";
+export const energyIssueId = "energy-and-adaptation";
+export const regionalElectricityId = "regional-electricity-supply";
 export const preventionFollowupSection = "prevention-follow-up";
 
 export function proposalHref(id: string) {

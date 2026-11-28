@@ -26,7 +26,11 @@ export function IssueBrief({ id, simulationId, simulationLabel = 'Try the compar
         </div>
         <div>
           <h3>{interventionHeading}</h3>
-          <p>{brief.intervention}</p>
+          {typeof brief.intervention === 'string' ? <p>{brief.intervention}</p> : (
+            <ul className="issue-interventions">
+              {brief.intervention.map((option) => <li key={option}>{option}</li>)}
+            </ul>
+          )}
           <h3>What progress would look like</h3>
           <p>{brief.progress}</p>
         </div>

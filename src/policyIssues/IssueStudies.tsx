@@ -4,10 +4,15 @@ import { HousingPilot } from './housingPilot/HousingPilot';
 import { defaultHousingPilotSettings, housingPilotAssumptions } from './housingPilot/model';
 import { PilotEvidenceRegister } from './housingPilot/PilotEvidenceRegister';
 import { PolicyProposals, type ProgrammeScenarios } from './programmes/PolicyProposals';
-import { housingOwnershipSection, housingPilotSettingsSection, preventionFollowupSection, programmeSettingsPrefix, proposalEvidencePrefix, proposalPath } from './programmes/routes';
+import { energyIssueId, housingOwnershipSection, housingPilotSettingsSection, preventionFollowupSection, programmeSettingsPrefix, proposalEvidencePrefix, proposalPath, regionalElectricityId } from './programmes/routes';
 import { TradeExposure } from './trade';
 import { CountryVision, useCountryVision } from './vision';
 import './tools.css';
+
+const comparisonForSection = new Map([
+  [`${proposalPath}${energyIssueId}`, regionalElectricityId],
+  [preventionFollowupSection, 'preventive-health'],
+]);
 
 export default function IssueStudies({ fragment }: { fragment: string }) {
   const { vision, setVision } = useCountryVision();
@@ -15,7 +20,7 @@ export default function IssueStudies({ fragment }: { fragment: string }) {
   const [year, setYear] = useState(housingPilotAssumptions.downturnEndYear);
   const [scenarios, setScenarios] = useState<ProgrammeScenarios>({});
   const selectedPrefix = [proposalPath, programmeSettingsPrefix].find((prefix) => fragment.startsWith(prefix));
-  const selectedProposal = fragment === preventionFollowupSection ? 'preventive-health' : selectedPrefix && fragment.slice(selectedPrefix.length);
+  const selectedProposal = comparisonForSection.get(fragment) ?? (selectedPrefix && fragment.slice(selectedPrefix.length));
   const showHousing = fragment === 'housing-pilot' || fragment === housingOwnershipSection || fragment === housingPilotSettingsSection;
   const selectedEvidence = fragment.startsWith(proposalEvidencePrefix) ? fragment.slice(proposalEvidencePrefix.length) : undefined;
   const showEvidence = fragment === 'evidence-library' || fragment === 'housing-evidence-register' || selectedEvidence !== undefined;
