@@ -44,24 +44,32 @@ export const issueBriefs: Readonly<Record<string, IssueBriefDetails>> = {
   },
   'energy-and-adaptation': {
     title: 'Energy security and cost',
-    question: 'How can Australia keep power and fuel available when people need them, at prices households and businesses can plan around?',
+    question: 'What mix of power sources and fuel suppliers would keep Australia running through bad weather, outages and import shocks at a cost people and businesses can afford?',
     indicators: [{
+      observation: 'In November 2026, the RBA reported a partial recovery in crude oil shipments through the Strait of Hormuz. Refining constraints continued to limit diesel supply, and Australian pump prices were still above their pre-conflict levels.',
+      source: 'Reserve Bank of Australia, November 2026 Statement on Monetary Policy',
+      url: 'https://www.rba.gov.au/publications/smp/2026/nov/economic-conditions.html',
+    }, {
+      observation: 'Imports met 80.8% of Australian consumption of refined petroleum products in 2024–25. Australian refineries also imported about two-thirds of their feedstock that year.',
+      source: 'Australian Energy Statistics, energy trade',
+      url: 'https://www.energy.gov.au/energy-data/australian-energy-statistics/energy-trade',
+    }, {
       observation: 'In the ACCC sample across NSW, Victoria, South Australia and south-east Queensland, the median small-business electricity bill after rebates rose 20% from the September quarter of 2024 to the same quarter of 2025. Before rebates the increase was 7%.',
       source: 'ACCC electricity market inquiry, June 2026 report',
       url: 'https://www.accc.gov.au/system/files/inquiry-national-electricity-market-report-june-2026.pdf',
-    }, {
-      observation: 'Australia imported 80.8% of the refined petroleum products it used in 2024–25. A disruption to fuel deliveries can reach farms and freight operators as well as motorists.',
-      source: 'Australian Energy Statistics, energy trade',
-      url: 'https://www.energy.gov.au/energy-data/australian-energy-statistics/energy-trade',
     }],
-    whyItMatters: 'A food processor needs heat to run a production line, electricity to keep stock cold and fuel to get it to shops. A supply interruption can cost a shift or spoil a shipment. High energy bills squeeze household budgets and raise the cost of every unit a factory makes. Dependable supply at predictable prices helps Australian firms compete for orders and decide where to invest.',
+    whyItMatters: 'Farms, freight operators and emergency services need a steady supply of diesel. When fuel is scarce or expensive, harvesting and delivering food costs more, and so does getting to work. Businesses also need dependable electricity to run production lines and keep stock cold. Reliable energy at predictable prices helps households manage bills and Australian firms compete for orders and invest.',
     intervention: [
+      'Compare mixes of solar, wind, gas and coal with storage and grid connections. Test what each mix delivers through a calm night, a fuel shortage and the loss of a large plant. Include nuclear as a longer-term scenario that assumes a change to Australian law and time for licensing and construction.',
+      'Secure fuel through independent suppliers and routes. Compare access to alternative gas fields and pipelines, coal deliveries and oil imports. Check whether suppliers share a pipeline, port or source of crude.',
+      'Keep reserves of finished fuel in Australia and plan how to get them to farms, freight and essential services during a shortage.',
+      'Assess how much diesel Australia could make from suitable local crude and other Australian inputs, including renewable diesel where viable. Compare the cost and lead time of expanding local production with the fuel it could deliver in a disruption.',
+      'Use less oil for the same work through more efficient vehicles, electrification where charging is practical, and rail for suitable freight.',
       'Bring new generation and grid connections online before older plants retire. Compare the full cost of each option, including the storage or on-demand generation needed to cover peak hours.',
       'Upgrade equipment where energy savings justify the cost, such as refrigeration in food supply chains. Pay willing users to move flexible work away from expensive peak hours.',
       'Buy some electricity at a fixed price to make costs more predictable. This cushions a price spike and can cost more when spot prices fall.',
-      'Keep freight and farms supplied during a fuel disruption. Weigh the cost of alternative suppliers and diesel stocks against the cost of trucks and machinery sitting idle.',
     ],
-    progress: 'Look for fewer hours without power, fewer production stoppages and enough fuel on hand to keep essential freight moving. Track bills as a share of household income and energy cost per unit of business output, including how much each varies over time. Count the cost of securing supply alongside the disruptions avoided.',
+    progress: 'Compare how much electricity demand each mix can meet across different shocks, what it costs to build and run, and when it can be ready. Track how much diesel can be made with Australian inputs, how long reserves cover a shortfall and whether fuel still reaches farms, freight and emergency services. Check which protections bring down the risk without making energy unaffordable.',
   },
   'critical-systems': {
     title: 'Critical service continuity',

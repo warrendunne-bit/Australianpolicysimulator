@@ -1,7 +1,7 @@
-import { regionalElectricityId } from './routes';
+import { dieselResilienceId, electricityMixId, regionalElectricityId } from './routes';
 
 export interface ProgrammeGuide {
-  controlId: string;
+  controlId: string | readonly string[];
   action: string;
   population: string;
   timeframe: string;
@@ -12,6 +12,26 @@ export interface ProgrammeGuide {
 }
 
 export const programmeGuides: Readonly<Record<string, ProgrammeGuide>> = {
+  [electricityMixId]: {
+    controlId: ['solarMW', 'windMW', 'nuclearMW', 'gasMW', 'coalMW'],
+    action: 'Move the same number of MW from one source to another to compare mixes at equal installed capacity. Open All other settings to test longer storage or more fuel from independent suppliers.',
+    population: 'An illustrative power system serving the same level of electricity demand in both cases.',
+    timeframe: 'Three four-hour tests and one 12-hour test, with annual fuel contract costs shown separately.',
+    outcomeId: 'combined-shortfall',
+    costId: 'alternative-fuel-cost',
+    interpretation: 'Read the shortfall for each disruption. A mix that covers a short evening may run short in a longer event. Independent fuel suppliers can keep some gas and coal plants running if the other routes fail.',
+    evaluation: 'Use actual weather and demand histories, equipment outages and regional fuel delivery data to compare whole-system costs and how often customers could lose power.',
+  },
+  [dieselResilienceId]: {
+    controlId: 'reserveDays',
+    action: 'Raise reserves from 12 to 16 days of usual use and compare the shortfall. Under All other settings, lower the maximum daily reserve deliveries and see how much fuel gets through.',
+    population: 'One illustrative market for finished diesel, using Australian production and imports.',
+    timeframe: 'The selected disruption, with one year of reserve holding costs.',
+    outcomeId: 'unmet-diesel',
+    costId: 'reserve-cost',
+    interpretation: 'Stocks last longer when production and imports meet part of demand. If the daily delivery limit is too low, customers can run short of diesel while stocks are still available. The cost shown covers holding the reserve.',
+    evaluation: 'Use fuel stocks and deliveries by region to check how much diesel can reach farms, freight and essential services. Compare what it would cost to hold more stock, deliver it faster or secure more fuel made with Australian inputs.',
+  },
   [regionalElectricityId]: {
     controlId: 'reserveMW',
     action: 'Book another 5 MW of reserve and check how much unmet demand it covers. Under All other settings, try fixing a larger share of purchases, then lower the spot price to see when the contract costs more.',

@@ -73,16 +73,41 @@ export const evidenceProposals: readonly EvidenceProposal[] = [
   {
     id: "energy-and-adaptation",
     title: "Keep energy reliable and affordable for households and industry",
-    action: "Compare the cost of dependable power at peak times with the cost of interrupted work. Test new supply, network capacity, storage, efficiency and moving flexible demand to quieter hours. For liquid fuels, weigh the cost of holding stocks against the disruption a delayed shipment could cause.",
+    action: "Compare how different generation mixes hold up in a weather lull, a fuel interruption or a large plant outage. Check whether alternative suppliers can deliver independently of the disrupted route. For diesel, assess local inputs, alternative imports, reserve delivery and lower demand.",
     judgement: "Costs depend on local conditions",
     status: "Programme comparison",
-    simulatorUse: "The regional electricity example tests a reserve booking and a fixed price for part of the buyer’s grid purchases during one peak. The public-building comparison examines annual usage charges, emissions, upfront investment and hours of essential service lost in an outage.",
-    outcomes: "Track energy that could not be supplied, outage duration, usable fuel stocks and lost production. Follow household bills and business energy costs per unit of output, price volatility, emissions and the full cost of providing reliable supply.",
+    simulatorUse: "The energy mix comparison tests solar, wind, hypothetical nuclear, gas, coal and storage during four disruptions. The diesel comparison tests local refining, alternative imports, reserves and demand. Two other comparisons cover peak electricity costs and backup for public buildings.",
+    outcomes: "Compare electricity left unmet under different shocks, exposure to common fuel supply routes, the cost and time to build, and emissions. Track diesel made with Australian inputs, reserves that can be delivered and fuel reaching essential users.",
     sources: [
+      {
+        title: "Reserve Bank of Australia, Impact of higher global energy prices on Australia, May 2026",
+        url: "https://www.rba.gov.au/publications/smp/2026/may/in-depth-the-impact-of-higher-global-energy-prices-on-the-australian-economy.html",
+        interpretation: "Traces how disruptions to crude supplies for overseas refiners affect Australian fuel availability, prices and production costs.",
+      },
+      {
+        title: "Australian Government, Fuel supply and security, 2026–27 Budget",
+        url: "https://budget.gov.au/content/01-fuel-supply-and-security.htm",
+        interpretation: "Describes how Australia responded to the 2026 oil shock and announced investment in reserves and refining. The announced 50-day objective applies to diesel and jet fuel.",
+      },
       {
         title: "Australian Energy Market Operator, 2026 Integrated System Plan",
         url: "https://www.aemo.com.au/energy-systems/major-publications/integrated-system-plan-isp/2026-integrated-system-plan-isp",
-        interpretation: "AEMO compares the cost and reliability of generation, storage and network investments as coal plants retire. The plan covers the National Electricity Market. The four-hour example uses its own illustrative capacity and prices.",
+        interpretation: "Compares the cost and reliability of generation, storage and network investments as coal plants retire. The National Electricity Market plan uses detailed forecasts and operating conditions.",
+      },
+      {
+        title: "Australian Energy Market Operator, 2026 Gas Statement of Opportunities",
+        url: "https://www.aemo.com.au/energy-systems/gas/gas-forecasting-and-planning/gas-statement-of-opportunities-gsoo",
+        interpretation: "Assesses how different gas supply, storage and pipeline investments could change peak-day shortfalls in eastern and central Australia.",
+      },
+      {
+        title: "CSIRO and AEMO, GenCost 2025–26",
+        url: "https://www.csiro.au/en/research/technology-space/energy/electricity-transition/gencost",
+        interpretation: "Estimates new-build generation and storage costs and compares costs across whole-system mixes. The simulator uses assumed stress conditions and prices for alternative fuel contracts.",
+      },
+      {
+        title: "Environment Protection and Biodiversity Conservation Act 1999, section 140A",
+        url: "https://www.legislation.gov.au/C2004A00485/latest/text",
+        interpretation: "Federal law bars environmental approval for civilian nuclear power plants. The nuclear capacity in the exercise is a hypothetical longer-term option.",
       },
       {
         title: "Australian Energy Regulator, Wholesale electricity market performance report 2024",

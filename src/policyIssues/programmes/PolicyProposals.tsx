@@ -4,17 +4,21 @@ import { IssueBrief } from "../IssueBrief";
 import { issueBriefs } from "../issueBriefs";
 import { communityExercises } from "./community";
 import { compareProgramme, initialProgrammeInputs, type ProgrammeInputs } from "./comparison";
+import { dieselResilience } from "./dieselResilience";
 import { economicExercises } from "./economic";
+import { electricityMix } from "./electricityMix";
 import { programmeGuides } from "./guides";
 import { householdExercises } from "./households";
 import { PreventionSensitivity } from "./PreventionSensitivity";
 import { regionalElectricity } from "./regionalElectricity";
-import { energyIssueId, preventionFollowupSection, programmeSettingsPrefix, proposalHref, proposalsSection, regionalElectricityId } from "./routes";
+import { dieselResilienceId, electricityMixId, energyIssueId, preventionFollowupSection, programmeSettingsPrefix, proposalHref, proposalsSection, regionalElectricityId } from "./routes";
 import type { PolicyExercise, PolicyInput } from "./types";
 import "./programmes.css";
 
 const exercises = new Map([
   regionalElectricity,
+  electricityMix,
+  dieselResilience,
   ...economicExercises,
   ...householdExercises,
   ...communityExercises,
@@ -76,8 +80,9 @@ function ProgrammeComparison({ exercise, savedInputs, onCompare }: {
   const simulationId = `${programmeSettingsPrefix}${exercise.id}`;
   const issueId = exercise.issueId ?? exercise.id;
   const guide = programmeGuides[exercise.id];
-  const firstInputs = exercise.inputs.filter(({ id }) => id === guide.controlId);
-  const otherPolicyInputs = exercise.inputs.filter(({ id, reference }) => id !== guide.controlId && reference !== undefined);
+  const suggestedIds = typeof guide.controlId === "string" ? [guide.controlId] : guide.controlId;
+  const firstInputs = exercise.inputs.filter(({ id }) => suggestedIds.includes(id));
+  const otherPolicyInputs = exercise.inputs.filter(({ id, reference }) => !suggestedIds.includes(id) && reference !== undefined);
   const sharedInputs = exercise.inputs.filter(({ id, reference }) => id !== guide.controlId && reference === undefined);
   const keyOutcomes = [guide.outcomeId, guide.costId];
   const orderedOutcomes = [
@@ -110,6 +115,8 @@ function ProgrammeComparison({ exercise, savedInputs, onCompare }: {
     <>
       {issueId === energyIssueId ? (
         <IssueBrief id={issueId} simulationId={`${programmeSettingsPrefix}${regionalElectricityId}`} simulationLabel="Compare supply and cost" interventionHeading="How to secure supply and manage costs">
+          <a href={`#${programmeSettingsPrefix}${electricityMixId}`}>Compare energy mixes</a>
+          <a href={`#${programmeSettingsPrefix}${dieselResilienceId}`}>Compare diesel resilience</a>
           <a href={`#${programmeSettingsPrefix}${energyIssueId}`}>Compare public building upgrades</a>
         </IssueBrief>
       ) : <IssueBrief id={issueId} simulationId={simulationId} />}
@@ -129,9 +136,9 @@ function ProgrammeComparison({ exercise, savedInputs, onCompare }: {
               if (details) details.open = true;
             }
           }}>
-          <h3 id="programme-settings-heading">Try one change</h3>
+          <h3 id="programme-settings-heading">{firstInputs.length === 1 ? "Try one change" : "Set up your scenario"}</h3>
           <p className="programme-summary">{guide.action}</p>
-          <InputGroup title="Suggested setting" inputs={firstInputs} draft={draft} onChange={changeDraft} />
+          <InputGroup title={firstInputs.length === 1 ? "Suggested setting" : "Suggested settings"} inputs={firstInputs} draft={draft} onChange={changeDraft} />
           <details className="programme-other-settings">
             <summary>All other settings</summary>
             <InputGroup title="Other policy settings" inputs={otherPolicyInputs} draft={draft} onChange={changeDraft} />

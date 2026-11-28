@@ -37,14 +37,16 @@ try {
   const modelConfig = await server.ssrLoadModule('/model/index.ts');
   const { evidenceProposals } = await server.ssrLoadModule('/policyIssues/housingPilot/evidence.ts');
   const { issueBriefs } = await server.ssrLoadModule('/policyIssues/issueBriefs.ts');
+  const { dieselResilience } = await server.ssrLoadModule('/policyIssues/programmes/dieselResilience.ts');
   const { economicExercises } = await server.ssrLoadModule('/policyIssues/programmes/economic.ts');
+  const { electricityMix } = await server.ssrLoadModule('/policyIssues/programmes/electricityMix.ts');
   const { regionalElectricity } = await server.ssrLoadModule('/policyIssues/programmes/regionalElectricity.ts');
   const { householdExercises } = await server.ssrLoadModule('/policyIssues/programmes/households.ts');
   const { comparePreventionFollowup } = await server.ssrLoadModule('/policyIssues/programmes/preventionFollowup.ts');
   const { communityExercises } = await server.ssrLoadModule('/policyIssues/programmes/community.ts');
   const { initialProgrammeInputs, compareProgramme } = await server.ssrLoadModule('/policyIssues/programmes/comparison.ts');
   const { programmeGuides } = await server.ssrLoadModule('/policyIssues/programmes/guides.ts');
-  const { proposalHref, housingOwnershipSection } = await server.ssrLoadModule('/policyIssues/programmes/routes.ts');
+  const { proposalHref, housingOwnershipSection, programmeSettingsPrefix } = await server.ssrLoadModule('/policyIssues/programmes/routes.ts');
   const { isIssueStudy } = await server.ssrLoadModule('/policyIssues/issueRouting.ts');
   const { runHousingPilot } = await server.ssrLoadModule('/policyIssues/housingPilot/model.ts');
   const { compareFirstHome, defaultFirstHomeSettings, firstHomeAssumptions } = await server.ssrLoadModule('/policyIssues/housingPilot/homeOwnership.ts');
@@ -80,14 +82,18 @@ try {
     assert(!isIssueStudy('immigration'), 'immigration is a separate simulator route');
   });
 
-  test('each programme guide points to a policy setting and distinct outcome and cost rows', () => {
-    const exercises = [regionalElectricity, ...economicExercises, ...householdExercises, ...communityExercises];
+  test('each programme guide points to policy settings and distinct outcome and cost rows', () => {
+    const exercises = [dieselResilience, electricityMix, regionalElectricity, ...economicExercises, ...householdExercises, ...communityExercises];
     assert(Object.keys(programmeGuides).length === exercises.length, 'programme guides must cover exactly the programme comparisons');
     for (const exercise of exercises) {
       const guide = programmeGuides[exercise.id];
       assert(guide, `missing guide for ${exercise.id}`);
-      const control = exercise.inputs.find(({ id }) => id === guide.controlId);
-      assert(control?.reference !== undefined, `suggested input must be a policy setting for ${exercise.id}`);
+      const suggestedIds = typeof guide.controlId === 'string' ? [guide.controlId] : guide.controlId;
+      assert(suggestedIds.length > 0, `expected a suggested setting for ${exercise.id}`);
+      for (const controlId of suggestedIds) {
+        const control = exercise.inputs.find(({ id }) => id === controlId);
+        assert(control?.reference !== undefined, `suggested input must be a policy setting for ${exercise.id}`);
+      }
       const outcomes = compareProgramme(exercise, initialProgrammeInputs(exercise.inputs));
       assert(guide.outcomeId !== guide.costId, `primary result and cost must differ for ${exercise.id}`);
       assert(outcomes.filter(({ id }) => id === guide.outcomeId).length === 1, `invalid primary result for ${exercise.id}`);
@@ -124,6 +130,88 @@ try {
     assert(cheapFixed['procurement-cost'] === fixed['procurement-cost'] && cheapSpot['procurement-cost'] < cheapFixed['procurement-cost'], 'full cover should remove spot exposure and can cost more');
     const noSupply = calculate({ availableMW: 0, reserveMW: 0, fixedShare: 100 });
     assert(noSupply.delivered === 0 && noSupply.unserved === 400 && noSupply['procurement-cost'] === 0, 'a price agreement alone cannot supply power');
+  });
+
+  test('energy mixes with the same installed capacity have different shortfalls across disruptions', () => {
+    assert(isIssueStudy(`${programmeSettingsPrefix}${electricityMix.id}`), 'the energy mix comparison should open directly');
+    const inputs = initialProgrammeInputs(electricityMix.inputs);
+    const compare = (overrides) => Object.fromEntries(
+      compareProgramme(electricityMix, { ...inputs, ...overrides }).map(row => [row.id, row]),
+    );
+    const defaults = compare({});
+    assert(defaults['installed-generation'].reference === 240 && defaults['installed-generation'].value === 240, 'the default cases should have equal installed generating capacity');
+    assert(defaults['combined-shortfall'].reference === 503.6 && defaults['combined-shortfall'].value === 371.6, 'the proposed mix should cover more of the calm night with constrained fuel');
+    assert(defaults['plant-outage'].reference === 56 && defaults['plant-outage'].value === 120, 'the benefit in one test should not imply a benefit in the other');
+
+    const moreEnergyInStorage = compare({ storageHours: 12 });
+    assert(moreEnergyInStorage['combined-shortfall'].value === 171.6, 'longer storage should still be capped by its discharge rate');
+    assert(moreEnergyInStorage['plant-outage'].value === 120, 'extra storage duration should not increase power over a four-hour outage');
+
+    const noOtherSupply = { solarMW: 0, windMW: 0, nuclearMW: 0, gasMW: 0, coalMW: 0, storageMW: 0 };
+    const solar = compare({ ...noOtherSupply, solarMW: 100 });
+    const wind = compare({ ...noOtherSupply, windMW: 100 });
+    const nuclear = compare({ ...noOtherSupply, nuclearMW: 100 });
+    assert(solar['fuel-disruption'].value === 220 && solar['calm-evening'].value === 420, 'solar should follow daylight');
+    assert(wind['calm-evening'].value === 380, 'some wind output should remain during the selected calm spell');
+    assert(nuclear['calm-evening'].value === 60 && nuclear['plant-outage'].value === 220, 'nuclear should supply through the calm evening and be exposed to a plant outage');
+  });
+
+  test('independent gas and coal supply reduces exposure to a fuel disruption', () => {
+    const inputs = initialProgrammeInputs(electricityMix.inputs);
+    const calculate = (overrides) => Object.fromEntries(
+      electricityMix.calculate({ ...inputs, ...overrides }).map(({ id, value }) => [id, value]),
+    );
+    const none = calculate({ independentGas: 0, independentCoal: 0 });
+    const gas = calculate({ independentGas: 100, independentCoal: 0 });
+    const coal = calculate({ independentGas: 0, independentCoal: 100 });
+    const both = calculate({ independentGas: 100, independentCoal: 100 });
+    assert(none['exposed-fossil-capacity'] === 90 && both['exposed-fossil-capacity'] === 0, 'independent contracts should cover the exposed capacity');
+    assert(gas['combined-shortfall'] < none['combined-shortfall'] && coal['combined-shortfall'] < none['combined-shortfall'], 'either kind of independent fuel should help');
+    assert(both['combined-shortfall'] === 80 && both['calm-evening'] === none['calm-evening'], 'full fuel cover helps in the combined shock while leaving the calm evening unchanged');
+    assertClose(both['alternative-fuel-cost'], 3.15, 1e-9, '90 covered megawatts should incur the annual contract fee');
+    const uninterrupted = calculate({ independentGas: 0, independentCoal: 0, fuelLoss: 0 });
+    assert(uninterrupted['combined-shortfall'] === both['combined-shortfall'], 'complete cover should offset the fuel loss');
+  });
+
+  test('diesel reserves cover shortfalls until either stock volume or daily deliveries fall short', () => {
+    assert(isIssueStudy(`${programmeSettingsPrefix}${dieselResilience.id}`), 'the diesel comparison should open directly');
+    const inputs = initialProgrammeInputs(dieselResilience.inputs);
+    const compare = (overrides) => Object.fromEntries(
+      compareProgramme(dieselResilience, { ...inputs, ...overrides }).map(row => [row.id, row]),
+    );
+    const defaults = compare({});
+    assert(defaults['unmet-diesel'].reference === 1306 && defaults['unmet-diesel'].value === 330, 'expected diesel shortfalls in the illustrative shock');
+    assertClose(defaults['days-covered'].value, 1200 / 34, 1e-9, 'default reserves should cover the daily gap until exhausted');
+
+    const biggerReserve = compare({ reserveDays: 16 });
+    assert(biggerReserve['unmet-diesel'].value === 0 && biggerReserve['reserves-left'].value === 70, 'extra reserves should cover the entire 45-day gap');
+    assert(biggerReserve['reserve-cost'].value === 128 && defaults['reserve-cost'].value === 96, 'a larger reserve should raise annual holding cost');
+
+    const deliveryLimit = compare({ reserveDays: 16, reserveDeliveryLimit: 30 });
+    assert(deliveryLimit['days-covered'].value === 0, 'a delivery bottleneck should leave a gap from day one');
+    assert(deliveryLimit['unmet-diesel'].value === 180 && deliveryLimit['reserves-left'].value === 250, 'shortages can coincide with stock still in storage');
+    const longDisruption = compare({ reserveDays: 16, disruptionDays: 60 });
+    assert(longDisruption['unmet-diesel'].value === 440 && longDisruption['reserves-left'].value === 0, 'a longer disruption should exhaust the reserve');
+  });
+
+  test('locally sourced inputs, alternative suppliers and lower diesel demand maintain supply under an import shock', () => {
+    const inputs = {
+      ...initialProgrammeInputs(dieselResilience.inputs),
+      reserveDays: 0, demandReduction: 0, alternativeImports: 0, localInputs: 0, finishedDieselLoss: 100, feedstockLoss: 100,
+    };
+    const calculate = (overrides) => Object.fromEntries(
+      dieselResilience.calculate({ ...inputs, ...overrides }).map(({ id, value }) => [id, value]),
+    );
+    const interrupted = calculate({ localProduction: 50 });
+    assert(interrupted['daily-local-output'] === 0 && interrupted['unmet-diesel'] === 4500, 'local capacity should stop when all its inputs are cut off');
+    const local = calculate({ localProduction: 50, localInputs: 50 });
+    assert(local['local-input-coverage'] === 25 && local['unmet-diesel'] === 3375, 'local inputs should keep some production available');
+    const diversified = calculate({ alternativeImports: 20 });
+    assert(diversified['daily-finished-imports'] === 15 && diversified['unmet-diesel'] === 3825, 'imports from unaffected suppliers should keep arriving');
+    const efficient = calculate({ demandReduction: 10 });
+    assert(efficient['daily-demand'] === 90 && efficient['unmet-diesel'] === 4050, 'lower demand should cut the shortfall by 10 ML per day');
+    const noDisruption = calculate({ finishedDieselLoss: 0, feedstockLoss: 0 });
+    assert(noDisruption['unmet-diesel'] === 0 && noDisruption['days-covered'] === 45 && noDisruption['reserves-used'] === 0, 'uninterrupted supplies should cover demand without stocks');
   });
 
   test('the housing pilot shares downturn conditions across three packages', () => {
